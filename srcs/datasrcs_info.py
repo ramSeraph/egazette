@@ -102,7 +102,8 @@ srcinfos = {
     'andhra' : {
         'languages' : ['eng', 'tel'],
         'source'    : 'Government of Andhra Pradesh',
-        'category'  : 'Andhra Pradesh Gazette'
+        'category'  : 'Andhra Pradesh Gazette',
+        'start_date': datetime(2023, 5, 4),
     },
     'andhraarchive' : { 
         'languages' : ['eng', 'tel'], 
