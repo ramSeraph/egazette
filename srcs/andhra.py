@@ -1,7 +1,8 @@
 from http.cookiejar import CookieJar
 import re
 import os
-import datetime
+import base64
+import json
 import urllib.parse
 
 from ..utils import utils
@@ -9,34 +10,53 @@ from .basegazette import BaseGazette
 from .central import CentralBase
 from ..utils.metainfo import MetaInfo
 
+class DoneChecker:
+    def __init__(self):
+        with open('known_data.json', 'r') as f:
+            known_items = json.loads(f.read())
+            self.known_items = set([ (k[0], k[1]) for k in known_items ])
+
+    def is_done(self, relurl, metainfo):
+        issuenum = metainfo['issuenum']
+        gznum    = metainfo['gznum']
+
+        date = relurl.split('/')[-2]
+
+        key1 = (date, issuenum)
+        key2 = (date, gznum)
+
+        return key1 in self.known_items or key2 in self.known_items
+
+#donechecker = DoneChecker()
+
 class Andhra(BaseGazette):
     def __init__(self, name, storage):
         BaseGazette.__init__(self, name, storage)
-
-        self.baseurl   = 'https://apegazette.cgg.gov.in/eGazetteSearch.do'
-        self.searchurl = self.baseurl
+        self.baseurl   = 'https://apegazette.cgg.gov.in/'
+        self.searchurl = 'https://apegazette.cgg.gov.in/searchAllGazette'
         self.hostname  = 'apegazette.cgg.gov.in'
-        self.result_table= 'gvGazette'
+        self.result_table = 'gvGazette'
 
     def get_field_order(self, tr):
         i = 0
+
         order  = []
-        valid = False
         for th in tr.find_all('th'):
             txt = utils.get_tag_contents(th)
-            if txt and re.search('gazette\s+type', txt, re.IGNORECASE):
+            if txt and re.search('gazette\s*type', txt, re.IGNORECASE):
                 order.append('gztype')
             elif txt and re.search('department', txt, re.IGNORECASE):
                 order.append('department')
             elif txt and re.search('abstract', txt, re.IGNORECASE):
                 order.append('subject')
             elif txt and re.search('Issue\s+No', txt, re.IGNORECASE):
+                order.append('issuenum')
+            elif txt and re.search('Gazette\s+No', txt, re.IGNORECASE):
                 order.append('gznum')
             elif txt and re.search('Notification\s+No', txt, re.IGNORECASE):
                 order.append('notification_num')
             elif txt and re.search('Download', txt, re.IGNORECASE):
                 order.append('download')
-                valid = True
             elif txt and re.search('', txt, re.IGNORECASE):
                 order.append('')
 
@@ -44,28 +64,49 @@ class Andhra(BaseGazette):
                 order.append('')    
 
             i += 1
-        if valid:    
+
+        if 'download' in order:
             return order
+
         return None    
 
-    def get_post_data(self, dateobj):
-        datestr = utils.dateobj_to_str(dateobj, '')
+    def get_post_data(self, tags, dateobj):
+        datestr = dateobj.strftime('%d%m%Y')
 
-        postdata = [\
-            ('mode',                  'unspecified'),  \
-            ('property(abstract)',    ''  ), \
-            ('property(department)',  '0'), \
-            ('property(docid)',       ''), \
-            ('property(fromdate)',    datestr), \
-            ('property(gazetteno)',   ''), \
-            ('property(gazettePart)', '0'), \
-            ('property(gazetteType)', '0'), \
-            ('property(month1)',      '0'), \
-            ('property(search)',      'search'), \
-            ('property(todate)',      datestr), \
-            ('property(year1)',       '0'), \
-        ]
+        postdata = []
+        for tag in tags:
+            name  = None
+            value = None
+            if tag.name == 'input':
+                name  = tag.get('name')
+                value = tag.get('value')
+                t     = tag.get('type')
+                if t == 'button':
+                    continue
+                if name == 'fromdate':
+                    value = datestr
+                elif name == 'todate':
+                    value = datestr
+            elif tag.name == 'select':        
+                name = tag.get('name')
+            if name:
+                if value is None:
+                    value = ''
+                postdata.append((name, value))
         return postdata
+
+
+    def get_form_data(self, webpage, form_href, dateobj):
+
+        search_form = utils.get_search_form(webpage, self.parser, form_href)
+        if search_form is None:
+            self.logger.warning('Unable to locate form the search page for day: %s', dateobj)
+            return None
+
+        reobj = re.compile('^(input|select)$')
+        tags  = search_form.find_all(reobj)
+
+        return self.get_post_data(tags, dateobj)
 
     def get_postdata_for_doc(self, docid, dateobj):
         postdata = [\
@@ -87,38 +128,40 @@ class Andhra(BaseGazette):
         return postdata
 
     def parse_search_results(self, webpage, dateobj):
-        minfos = []
+        metainfos = []
+
         d = utils.parse_webpage(webpage, self.parser)
         if not d:
             self.logger.warning('Unable to parse results page for date %s', dateobj)
-            return minfos
+            return metainfos
 
-        table = d.find('table', {'id': 'displaytable'})
+        table = d.find('table', {'id': 'displaytable1'})
         if not table:
             self.logger.warning('Unable to find result table for date %s', dateobj)
-            return minfos
+            return metainfos
         
         order = None
         for tr in table.find_all('tr'):
             if not order:
                 order = self.get_field_order(tr)
                 continue
-            metainfo = self.parse_row(tr, order, dateobj)
-            if metainfo and 'download' in metainfo:
-                minfos.append(metainfo)
 
-        return minfos
+            self.process_row(metainfos, tr, order, dateobj)
 
-    def parse_row(self, tr, order, dateobj):
+        return metainfos
+
+    def process_row(self, metainfos, tr, order, dateobj):
         metainfo = MetaInfo()
         metainfo.set_date(dateobj)
 
         i = 0
         for td in tr.find_all('td'):
             txt = utils.get_tag_contents(td)
+
             if i < len(order) and txt:
                 txt = txt.strip()
                 col = order[i]
+
                 if col == 'gztype':
                     words = txt.split('/')
                     metainfo['gztype'] = words[0].strip()
@@ -126,27 +169,90 @@ class Andhra(BaseGazette):
                         metainfo['partnum'] = words[1].strip()
                     if len(words) > 2:
                         metainfo['district'] = words[2].strip()
+
                 elif col == 'download':
                     inp = td.find('input')       
                     if inp and inp.get('onclick'): 
                         metainfo['download'] = inp.get('onclick')
-                elif col in ['notification_num', 'gznum', 'department']:
+
+                elif col != '':
                     metainfo[col] = txt
-                elif col == 'subject':
-                    metainfo.set_subject(txt)    
             i += 1
-        return metainfo
+
+        if 'download' not in metainfo:
+            return
+
+        metainfos.append(metainfo)
+
+    def decode_base64(self, data, altchars):
+        #data = re.sub(r'[^a-zA-Z0-9%s]+' % altchars, '', data)  # normalize
+
+        missing_padding = len(data) % 4
+        if missing_padding:
+            data += '='* (4 - missing_padding)
+
+        return base64.b64decode(data, validate=False)
+
+    def get_docnum(self, docid):
+        parts = docid.split('.')
+        payload_bytes = base64.urlsafe_b64decode(parts[1] + '=' * (4 - len(parts[1]) % 4))
+        payload = json.loads(payload_bytes)
+
+        sub    = payload['sub']
+        fname  = sub.split('/')[-1]
+        docnum = fname.rsplit('.', 1)[0]
+
+        return docnum
+        
+
+    def download_metainfo(self, metainfo, relpath, dateobj, cookiejar):
+        download = metainfo.pop('download')
+        reobj = re.search(r'openDocument\(\'(?P<docid>[^\']+)\'\)', download)
+        if not reobj:
+            return None
+
+        docid = reobj.groupdict()['docid']
+        gzurl = self.baseurl + f'uploadGazette_view?filePath={docid}'
+
+        docnum = self.get_docnum(docid)
+        if docnum is None:
+            self.logger.warning('Unable to retrieve docnum for date: %s', dateobj)
+            return None
+
+        relurl = os.path.join(relpath, docnum)
+        if self.save_gazette(relurl, gzurl, metainfo, cookiefile = cookiejar):
+            return relurl
+
+        return None    
 
     def download_oneday(self, relpath, dateobj):
+        #self.donechecker = donechecker
         dls = []
         cookiejar  = CookieJar()
-        response = self.download_url(self.baseurl, savecookies = cookiejar)
-        postdata = self.get_post_data(dateobj)
-        response = self.download_url(self.searchurl, postdata = postdata, \
-                               loadcookies = cookiejar, savecookies = cookiejar)
 
+        response = self.download_url(self.baseurl, savecookies = cookiejar)
         if not response or not response.webpage:
+            self.logger.warning('Unable to get main page for date %s', dateobj)
             return dls
+
+
+        response = self.download_url(self.searchurl, referer = self.baseurl, \
+                                    loadcookies = cookiejar)
+        if not response or not response.webpage:
+            self.logger.warning('Unable to get search page for date %s', dateobj)
+            return dls
+
+
+        search_href  = 'searchAllGazettes'
+        postdata     = self.get_form_data(response.webpage, search_href, dateobj)
+        searchnewurl = urllib.parse.urljoin(self.baseurl, search_href)
+
+        response = self.download_url(searchnewurl, postdata = postdata, \
+                                    referer = self.searchurl, loadcookies = cookiejar)
+        if not response or not response.webpage:
+            self.logger.warning('Unable to get results page for date %s', dateobj)
+            return dls
+
 
         metainfos = self.parse_search_results(response.webpage, dateobj)
         for metainfo in metainfos:
@@ -155,21 +261,6 @@ class Andhra(BaseGazette):
                 dls.append(relurl)
 
         return dls
-
-    def download_metainfo(self, metainfo, relpath, dateobj, cookiejar):
-        reobj = re.search('openDocument\(\'(?P<num>\d+)\'\)', metainfo['download'])        
-        if not reobj:
-            return None
-        docid = reobj.groupdict()['num']    
-        postdata = self.get_postdata_for_doc(docid, dateobj)
-        metainfo.pop('download')
-        relurl = os.path.join(relpath, docid)
-
-        if self.save_gazette(relurl, self.searchurl, metainfo, \
-                             cookiefile = cookiejar, \
-                             postdata = postdata, validurl = False):
-            return relurl
-        return None    
 
 class AndhraArchive(CentralBase):
     def __init__(self, name, storage):
@@ -183,7 +274,7 @@ class AndhraArchive(CentralBase):
         response = self.download_url(search_url, savecookies = cookiejar, loadcookies=cookiejar)
 
         postdata = self.get_form_data(response.webpage, dateobj, self.search_endp)
-        if postdata == None:
+        if postdata is None:
             return None
         response = self.download_url(search_url, savecookies = cookiejar, \
                                    loadcookies = cookiejar, postdata = postdata)
@@ -221,7 +312,7 @@ class AndhraArchive(CentralBase):
                     value = 'Select'
 
             if name:
-                if value == None:
+                if value is None:
                     value = ''
                 postdata.append((name, value))
 
@@ -231,15 +322,15 @@ class AndhraArchive(CentralBase):
         order = []
         for th in tr.find_all('th'):
             txt = utils.get_tag_contents(th)
-            if txt and re.search('GazetteType', txt):
+            if txt and re.search(r'GazetteType', txt):
                 order.append('gztype')
-            elif txt and re.search('Abstract', txt):
+            elif txt and re.search(r'Abstract', txt):
                 order.append('subject')
-            elif txt and re.search('DepartmentName', txt):
+            elif txt and re.search(r'DepartmentName', txt):
                 order.append('department')
-            elif txt and re.search('Gazette\s+No', txt):
+            elif txt and re.search(r'Gazette\s+No', txt):
                 order.append('gznum')
-            elif txt and re.search('Issued\s+By', txt):
+            elif txt and re.search(r'Issued\s+By', txt):
                 order.append('issued_by')
             else:
                 order.append('')
@@ -293,7 +384,7 @@ class AndhraArchive(CentralBase):
                 continue
 
             href = metainfo.pop('download')
-            reobj = re.search('javascript:__doPostBack\(\'(?P<event_target>[^\']+)\',\'(?P<event_arg>[^\']+)\'\)', href)
+            reobj = re.search(r'javascript:__doPostBack\(\'(?P<event_target>[^\']+)\',\'(?P<event_arg>[^\']+)\'\)', href)
             if not reobj:
                 self.logger.warning('No event_target or event_arg in the gazette link. Ignoring - %s' % metainfo)
                 continue 
@@ -576,6 +667,7 @@ class AndhraGOIR(BaseGazette):
         if postdata is None:
             self.logger.warning('Unable to retreive form data for date %s', dateobj)
             return dls
+
         postdata.append(('ctl00$ContentPlaceHolder1$BtnSearch', 'Search'))
 
         searchurl = urllib.parse.urljoin(curr_url, self.search_endp)

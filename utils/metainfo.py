@@ -185,6 +185,7 @@ class MetaInfo(dict):
           ('registry_num',     'Registry Number'), \
           ('volume_num',       'Volume Number'), \
           ('series_num',       'Series Number'), \
+          ('issuenum',         'Issue Number'), \
           ('partnum',          'Part Number'), \
           ('refnum',           'Reference Number'), \
           ('ref_type',         'Reference Type'), \
@@ -266,7 +267,7 @@ class MetaInfo(dict):
 
         partnum = self.get('partnum', None)
         if partnum is not None:
-            if re.search(r'\bPart\b', partnum):
+            if re.search(r'\bPart\b', partnum, flags=re.IGNORECASE):
                 title.append(partnum)
             else:    
                 title.append(f'Part {partnum}')

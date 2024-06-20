@@ -99,10 +99,12 @@ srcinfos = {
         'prefix'    : 'in.gazette.chhattisgarh.eo.'
     },
     # 'in.gazette.andhra.<year>-<month>-<day>.<id>' start_date: 2008-05-22 end_date: 2023-05-03 count: 19184
-    'andhra' : {
+    'andhra_new' : {
         'languages' : ['eng', 'tel'],
         'source'    : 'Government of Andhra Pradesh',
-        'category'  : 'Andhra Pradesh Gazette'
+        'category'  : 'Andhra Pradesh Gazette',
+        'collection': '',
+        'start_date': datetime(2023, 5, 4),
     },
     'andhraarchive' : { 
         'languages' : ['eng', 'tel'], 
