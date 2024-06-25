@@ -46,6 +46,7 @@ srcdict = { \
 'punjabdsa'            : punjab.PunjabDSA, \
 'uttarakhand'          : uttarakhand.Uttarakhand, \
 'himachal'             : himachal.Himachal, \
+'himachalarchive'      : himachal.HimachalArchive, \
 'haryana'              : haryana.Haryana, \
 'haryanaarchive'       : haryana.HaryanaArchive, \
 'kerala'               : kerala.Kerala, \
@@ -77,6 +78,7 @@ srcnames = { \
 'punjabdsa'            : 'Government of Punjab', \
 'uttarakhand'          : 'Government of Uttarakhand', \
 'himachal'             : 'Government of Himachal Pradesh', \
+'himachalarchive'      : 'Government of Himachal Pradesh', \
 'haryana'              : 'Government of Haryana', \
 'haryanaarchive'       : 'Government of Haryana', \
 'kerala'               : 'Government of Kerala', \
@@ -108,6 +110,7 @@ categories = { \
 'punjabdsa'            : 'Punjab Gazette', \
 'uttarakhand'          : 'Uttarakhand Gazette', \
 'himachal'             : 'Himachal Pradesh Gazette', \
+'himachalarchive'      : 'Himachal Pradesh Gazette', \
 'haryana'              : 'Haryana Gazette', \
 'haryanaarchive'       : 'Haryana Gazette', \
 'kerala'               : 'Kerala Gazette', \
@@ -139,6 +142,7 @@ languages = { \
 'punjabdsa'            : ['eng', 'pan'], \
 'uttarakhand'          : ['eng', 'hin'], \
 'himachal'             : ['eng', 'hin'], \
+'himachalarchive'      : ['eng', 'hin'], \
 'haryana'              : ['eng', 'hin'], \
 'haryanaarchive'       : ['eng', 'hin'], \
 'kerala'               : ['eng', 'mal'], \
