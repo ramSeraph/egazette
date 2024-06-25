@@ -205,7 +205,15 @@ srcinfos = {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Himachal Pradesh',
         'category'  : 'Himachal Pradesh Gazette',
-        'start_date': datetime(2010, 1, 1)
+        'start_date': datetime(2007, 8, 1),
+        'collection': ''
+    },
+    'himachalarchive' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Government of Himachal Pradesh',
+        'category'  : 'Himachal Pradesh Gazette',
+        'start_date': datetime(1953, 11, 28),
+        'collection': ''
     },
     # 'in.gazette.haryana.<year>-<month>-<day>.<id>' start_date: 2014-10-27 end_date: 2025-03-06 count: 14106
     'haryana' : {
