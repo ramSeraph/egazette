@@ -223,7 +223,21 @@ def himachal(img, outfile = None):
 
     #img = img.resize((int(img.size[0]*m), int(img.size[1]*m)))
     val = tesseract(img)
-    return val.upper() 
+    return val
+
+def himachalarchive(img, outfile = None):
+    m = 2 
+    #img = img.resize((int(img.size[0]*m), int(img.size[1]*m)))
+    img = img.convert('L') # convert image to single channel greyscale
+
+    nh_score(img, 10, 10000 * 1000 * 1000)
+    if outfile:
+        img.save(outfile)
+
+    #img = img.resize((int(img.size[0]*m), int(img.size[1]*m)))
+    val = tesseract(img)
+    return val.upper()
+
 
 def allahabad(img, outfile = None):
     img = img.convert('RGBA')
