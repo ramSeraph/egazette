@@ -63,7 +63,8 @@ srcdict = { \
 'telangana'            : telangana.Telangana, \
 'telangana_goir'       : telangana.TelanganaGOIR, \
 'tamilnadu'            : tamilnadu.TamilNadu, \
-'odisha'               : odisha.Odisha, \
+'odisha_egaz'          : odisha.OdishaEGazette, \
+'odisha_govpress'      : odisha.OdishaGovPress, \
 'jharkhand'            : jharkhand.Jharkhand, \
 'madhyapradesh'        : madhyapradesh.MadhyaPradesh, \
 'punjab'               : punjab.Punjab, \
