@@ -170,10 +170,19 @@ srcinfos = {
         'start_date': datetime(2008, 1, 1)
     },
     # 'in.gazette.odisha.<year>-<month>-<day>.<id>' start_date: 2004-01-10 end_date: 2020-09-07 count: 22693
-    'odisha' : {
+    'odisha_govpress' : {
         'languages' : ['eng', 'ori'],
         'source'    : 'Government of Odisha',
-        'category'  : 'Odisha Gazette'
+        'category'  : 'Odisha Gazette',
+        'start_date': datetime(2022, 11, 11),
+        'collection': ''
+    },
+    'odisha_egaz' : {
+        'languages' : ['eng', 'ori'],
+        'source'    : 'Government of Odisha',
+        'category'  : 'Odisha Gazette',
+        'start_date': datetime(2022, 1, 1),
+        'collection': ''
     },
     # 'in.gazette.jharkhand.<year>-<month>-<day>.<id>' start_date: 2014-01-09 end_date: 2025-02-28 count: count: 8783
     'jharkhand' : {

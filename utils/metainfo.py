@@ -193,6 +193,7 @@ class MetaInfo(dict):
           ('url',              'Gazette Source'), \
           ('upload_date',      'Upload Date'), \
           ('issuedate',        'Issue Date'), \
+          ('notification_date','Notification Date'), \
           ('num',              'Number'), \
           ('document_type',    'Document Type'), \
           ('gazetteid',        'Gazette ID'), \
