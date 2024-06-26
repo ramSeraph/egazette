@@ -28,15 +28,6 @@ class CentralBase(BaseGazette):
 
         return search_form
 
-    def get_partnum(self, select_tag):
-        option = select_tag.find('option', {'selected': 'selected'})
-
-        if option:
-            val = option.get('value')
-            if val:
-                return val
-        return ''        
-
     def get_post_data(self, tags, dateobj):
         datestr  = utils.get_egz_date(dateobj)
         postdata = []
@@ -61,7 +52,7 @@ class CentralBase(BaseGazette):
                 if name == 'ddlGazetteCategory':
                     value = self.gztype
                 elif name == 'ddlPartSection':
-                    value = self.get_partnum(tag) 
+                    value = utils.get_selected_option(tag) 
                 elif name == 'ddlMinistry':
                     value = 'Select Ministry'
                 elif name == 'ddlDepartment':

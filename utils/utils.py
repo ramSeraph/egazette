@@ -159,6 +159,19 @@ def url_to_filename(url, catchpath, catchquery):
         return filename
     return None
 
+def get_selected_option(select_tag):
+    option = select_tag.find('option', {'selected': 'selected'})
+    if option == None:
+        option = select_tag.find('option')
+    if option == None:
+        return ''
+
+    val = option.get('value')
+    if val == None:
+        return ''
+
+    return val
+
 def get_tag_contents(node):
     if type(node) == NavigableString:
         return '%s' % node 

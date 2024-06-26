@@ -36,6 +36,7 @@ srcdict = { \
 'andhra'               : andhra.Andhra, \
 'andhraarchive'        : andhra.AndhraArchive, \
 'karnataka'            : karnataka.Karnataka, \
+'karnatakaERP'         : karnataka.KarnatakaErajyapatra, \
 'maharashtra'          : maharashtra.Maharashtra, \
 'telangana'            : telangana.Telangana, \
 'tamilnadu'            : tamilnadu.TamilNadu, \
@@ -67,6 +68,7 @@ srcnames = { \
 'andhra'               : 'Government of Andhra Pradesh', \
 'andhraarchive'        : 'Government of Andhra Pradesh', \
 'karnataka'            : 'Government of Karnataka', \
+'karnatakaERP'         : 'Government of Karnataka', \
 'maharashtra'          : 'Government of Maharashtra', \
 'telangana'            : 'Government of Telangana', \
 'tamilnadu'            : 'Government of Tamil Nadu', \
@@ -98,6 +100,7 @@ categories = { \
 'andhra'               : 'Andhra Pradesh Gazette', \
 'andhraarchive'        : 'Andhra Pradesh Gazette', \
 'karnataka'            : 'Karnataka Gazette', \
+'karnatakaERP'         : 'Karnataka Gazette - Weekly', \
 'maharashtra'          : 'Maharashtra Gazette', \
 'telangana'            : 'Telangana Gazette', \
 'tamilnadu'            : 'Tamil Nadu Gazette', \
@@ -129,6 +132,7 @@ languages = { \
 'andhra'               : ['eng', 'tel'], \
 'andhraarchive'        : ['eng', 'tel'], \
 'karnataka'            : ['eng', 'kan'], \
+'karnatakaERP'         : ['eng', 'kan'], \
 'maharashtra'          : ['eng', 'mar'], \
 'telangana'            : ['eng', 'tel'], \
 'tamilnadu'            : ['eng', 'tam'], \
