@@ -39,6 +39,7 @@ from . import mizoram
 from . import sikkim
 from . import tripura
 from . import rajasthan
+from . import gujarat
 
 from .datasrcs_info import srcinfos
 
@@ -89,6 +90,7 @@ srcdict = { \
 'sikkim'               : sikkim.Sikkim, \
 'tripura'              : tripura.Tripura, \
 'rajasthan'            : rajasthan.Rajasthan, \
+'gujarat'              : gujarat.Gujarat, \
 }
 
 srchierarchy = {

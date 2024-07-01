@@ -181,6 +181,7 @@ class MetaInfo(dict):
           ('num',              'Number'), \
           ('document_type',    'Document Type'), \
           ('gazetteid',        'Gazette ID'), \
+          ('govtpress',        'Government Press'), \
         ]
 
         member_keys = set(self.keys())
@@ -192,16 +193,18 @@ class MetaInfo(dict):
              if k == 'date':
                  v = f'{v}'
              elif k == 'linknames':
-                linkids = self.get('linkids')
-                i = 0
-                v = []
-                for linkname in self.get(k):
-                    identifier = linkids[i]
-                    v.append(f'<a href="/details/{identifier}">{linkname}</a>')
-                    i += 1
-                v = '<br/>'.join(v)
+                 linkids = self.get('linkids')
+                 i = 0
+                 v = []
+                 for linkname in self.get(k):
+                     identifier = linkids[i]
+                     v.append(f'<a href="/details/{identifier}">{linkname}</a>')
+                     i += 1
+                 v = '<br/>'.join(v)
+                 if v:
+                     v = '<br/>' + v
              elif k == 'url':
-                v = f'<a href="{v}">URL</a>'
+                 v = f'<a href="{v}">URL</a>'
              else:    
                  v = self.get(k).strip()
                  
@@ -236,6 +239,10 @@ class MetaInfo(dict):
         date = self.get('date', None)
         if date is not None:
             title.append(f'{date}')
+        else:
+            year = self.get('year', None)
+            if year is not None:
+                title.append(f'{year}')
 
         gztype = self.get('gztype', None)
         if gztype is not None:
@@ -293,6 +300,10 @@ class MetaInfo(dict):
         dateobj = self.get_date()
         if dateobj:
             metadata['date'] = f'{dateobj}'
+        else:
+            year = self.get('year', None)
+            if year is not None:
+                metadata['date'] = f'{year}'
         
         metadata['description'] = self.get_ia_description(srctype, srcinfo)
 

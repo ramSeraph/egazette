@@ -384,6 +384,13 @@ srcinfos = {
         'start_date': datetime(2019, 4, 1),
         'collection': ''
     },
+    'gujarat' : {
+        'languages' : ['eng', 'guj'],
+        'source'    : 'Government of Gujarat',
+        'category'  : 'Gujarat Gazette',
+        'start_date': datetime(1991, 1, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
