@@ -312,6 +312,13 @@ srcinfos = {
         'start_date': datetime(2011, 1, 1),
         'collection': ''
     },
+    'ladakh' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Ladakh Administration',
+        'category'  : 'Ladakh Gazette',
+        'start_date': datetime(2020, 9, 18),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):

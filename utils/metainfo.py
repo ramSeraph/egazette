@@ -177,6 +177,7 @@ class MetaInfo(dict):
           ('linknames',        'Gazette Links'), \
           ('url',              'Gazette Source'), \
           ('upload_date',      'Upload Date'), \
+          ('issuedate',        'Issue Date'), \
           ('num',              'Number'), \
           ('gazetteid',        'Gazette ID'), \
         ]

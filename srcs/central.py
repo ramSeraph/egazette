@@ -257,6 +257,16 @@ class CentralBase(BaseGazette):
                     metainfo[col] = txt
             i += 1
 
+    def get_docid(self, metainfo):
+        gazetteid = metainfo['gazetteid']
+
+        reobj = re.search('(?P<num>\d+)\s*$', gazetteid)
+        if not reobj:
+            reobj = re.search('\(\s*(?P<num>\d+)\s*\)\s*$', gazetteid)
+            if not reobj:
+                return None
+
+        return reobj.groupdict()['num']
 
     def download_gazette(self, relpath, search_url, postdata, \
                          metainfo, cookiejar):
@@ -297,15 +307,11 @@ class CentralBase(BaseGazette):
         srcurl = iframe.get('src')
         gzurl = urllib.parse.urljoin(self.baseurl, srcurl)
 
-        gazetteid = metainfo['gazetteid']
-        reobj = re.search('(?P<num>\d+)\s*$', gazetteid)
-        if not reobj:
-            reobj = re.search('\(\s*(?P<num>\d+)\s*\)\s*$', gazetteid)
-            if not reobj:
-                return None
+        docid = self.get_docid(metainfo)
+        if docid is None:
+            return None
 
-        filename = reobj.groupdict()['num']
-        relurl   = os.path.join(relpath, filename)
+        relurl   = os.path.join(relpath, docid)
 
         if self.save_gazette(relurl, gzurl, metainfo): 
             return relurl

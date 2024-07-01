@@ -24,6 +24,7 @@ from . import stgeorge
 
 from . import goa
 from . import csl 
+from . import ladakh
 
 from . import andaman
 from . import nagaland
@@ -70,6 +71,7 @@ srcdict = { \
 'lakshadweep'          : lakshadweep.Lakshadweep, \
 'dadranagarhaveli'     : dadranagarhaveli.DadraNagarHaveli,\
 'puducherry'           : puducherry.Puducherry, \
+'ladakh'               : ladakh.Ladakh, \
 }
 
 srchierarchy = {
