@@ -24,8 +24,8 @@ from . import stgeorge
 
 from . import goa
 from . import csl 
-from . import ladakh
 
+from . import ladakh
 from . import andaman
 from . import nagaland
 from . import lakshadweep
@@ -42,10 +42,9 @@ from . import rajasthan
 from . import gujarat
 from . import uttarpradesh
 from . import chandigarh
+from . import manipur
 
 from .datasrcs_info import srcinfos
-
-
 
 srcdict = { \
 'central_weekly'       : central.CentralWeekly, \
@@ -97,6 +96,7 @@ srcdict = { \
 'gujarat'              : gujarat.Gujarat, \
 'uttarpradesh'         : uttarpradesh.UttarPradesh, \
 'chandigarh'           : chandigarh.Chandigarh, \
+'manipur'              : manipur.Manipur, \
 }
 
 srchierarchy = {
