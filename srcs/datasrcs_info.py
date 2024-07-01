@@ -413,7 +413,13 @@ srcinfos = {
         'start_date': datetime(2019, 10, 1),
         'collection': ''
     },
-
+    'manipur' : {
+        'languages' : ['eng'],
+        'source'    : 'Government of Manipur',
+        'category'  : 'Manipur Gazette',
+        'start_date': datetime(2010, 4, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
