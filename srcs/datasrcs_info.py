@@ -340,6 +340,14 @@ srcinfos = {
         'start_date': datetime(2016, 1, 1),
         'collection': ''
     },
+    'meghalaya' : {
+        'languages' : ['eng'],
+        'source'    : 'Government of Meghalaya',
+        'category'  : 'Meghalaya Gazette',
+        'start_date': datetime(2006, 3, 1),
+        'collection': ''
+    },
+
 }
 
 def get_prefix(srcname, to_sandbox=False):
