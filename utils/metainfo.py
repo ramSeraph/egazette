@@ -180,6 +180,7 @@ class MetaInfo(dict):
           ('issuedate',        'Issue Date'), \
           ('num',              'Number'), \
           ('gazetteid',        'Gazette ID'), \
+          ('govtpress',        'Government Press'), \
         ]
 
         member_keys = set(self.keys())
