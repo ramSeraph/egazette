@@ -158,7 +158,7 @@ class MetaInfo(dict):
     def get_ia_gazette_description(self):
         desc = []
 
-        ignore_keys  = set(['linknames', 'links', 'linkids'])
+        ignore_keys  = set(['linknames', 'links', 'linkids', 'rawtext'])
         keys = [ \
           ('gztype',           'Gazette Type'),  \
           ('gznum',            'Gazette Number'), \
