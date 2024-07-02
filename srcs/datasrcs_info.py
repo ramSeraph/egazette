@@ -355,7 +355,13 @@ srcinfos = {
         'start_date': datetime(2006, 3, 1),
         'collection': ''
     },
-
+    'mizoram' : {
+        'languages' : ['eng', 'lus'],
+        'source'    : 'Government of Mizoram',
+        'category'  : 'Mizoram Gazette',
+        'start_date': datetime(1980, 2, 28),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
