@@ -265,7 +265,14 @@ srcinfos = {
         'start_date': datetime(1996, 1, 1),
         'collection': '',
         'enabled'   : False
-    }
+    },
+    'nagaland' : {
+        'languages' : ['eng'],
+        'source'    : 'Government of Nagaland',
+        'category'  : 'Nagaland Gazette',
+        'start_date': datetime(2017, 1, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
