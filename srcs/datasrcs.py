@@ -35,6 +35,7 @@ from . import jammuandkashmir
 from . import arunachal
 from . import assam
 from . import meghalaya
+from . import mizoram
 
 from .datasrcs_info import srcinfos
 
@@ -81,6 +82,7 @@ srcdict = { \
 'arunachal'            : arunachal.Arunachal, \
 'assam'                : assam.Assam, \
 'meghalaya'            : meghalaya.Meghalaya, \
+'mizoram'              : mizoram.Mizoram, \
 }
 
 srchierarchy = {
@@ -95,7 +97,6 @@ srchierarchy = {
                              'delhi_weekly', 'delhi_extraordinary',
                              'cgweekly', 'cgextraordinary']))
 }
-
 
 def get_srcobjs(srclist, storage):
     srcobjs = []
