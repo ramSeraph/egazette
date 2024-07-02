@@ -25,6 +25,8 @@ from . import stgeorge
 from . import goa
 from . import csl 
 
+from . import mizoram
+
 srcdict = { \
 'central_weekly'       : central.CentralWeekly, \
 'central_extraordinary': central.CentralExtraordinary, \
@@ -54,6 +56,8 @@ srcdict = { \
 'goa'                  : goa.Goa, \
 'csl_weekly'           : csl.CSLWeekly, \
 'csl_extraordinary'    : csl.CSLExtraordinary, \
+'mizoram'              : mizoram.Mizoram, \
+'mizoramarchive'       : mizoram.MizoramArchive, \
 }
 
 srcnames = { \
@@ -85,6 +89,8 @@ srcnames = { \
 'goa'                  : 'Government of Goa', \
 'csl_weekly'           : 'Government of India' , \
 'csl_extraordinary'    : 'Government of India', \
+'mizoram'              : 'Government of Mizoram', \
+'mizoramarchive'       : 'Government of Mizoram', \
 }
 
 categories = { \
@@ -116,6 +122,8 @@ categories = { \
 'goa'                  : 'Goa Gazette', \
 'csl_weekly'           : 'Weekly Gazette of India' , \
 'csl_extraordinary'    : 'Extraordinary Gazette of India', \
+'mizoram'              : 'Mizoram Gazette', \
+'mizoramarchive'       : 'Mizoram Gazette', \
 }
 
 languages = { \
@@ -147,6 +155,8 @@ languages = { \
 'goa'                  : ['eng', 'por'], \
 'csl_weekly'           : ['eng', 'hin'], \
 'csl_extraordinary'    : ['eng', 'hin'], \
+'mizoram'              : ['eng', 'lus'], \
+'mizoramarchive'       : ['eng', 'lus'], \
 }
 
 srchierarchy = { \
