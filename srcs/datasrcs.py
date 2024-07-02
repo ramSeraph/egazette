@@ -26,6 +26,7 @@ from . import goa
 from . import csl 
 
 from . import andaman
+from . import nagaland
 
 from .datasrcs_info import srcinfos
 
@@ -60,6 +61,7 @@ srcdict = { \
 'csl_weekly'           : csl.CSLWeekly, \
 'csl_extraordinary'    : csl.CSLExtraordinary, \
 'andaman'              : andaman.Andaman, \
+'nagaland'             : nagaland.Nagaland, \
 }
 
 srchierarchy = {
