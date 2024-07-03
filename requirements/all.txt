@@ -23,7 +23,7 @@ internetarchive==5.3.1
 iso-639==0.4.5
 jsonpatch==1.33
 jsonpointer==3.0.0
-lxml==5.3.1
+lxml==5.3.2
 numpy==2.2.4
 pillow==11.1.0
 ply==3.11
@@ -41,5 +41,6 @@ setuptools==78.1.0
 soupsieve==2.6
 srt==3.5.3
 tqdm==4.67.1
-typing-extensions==4.13.0
-urllib3==2.3.0
+typing-extensions==4.13.2
+urllib3==2.4.0
+wayback==0.4.5

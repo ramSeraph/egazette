@@ -25,5 +25,5 @@ requests==2.32.3
 rsa==4.9
 soupsieve==2.6
 srt==3.5.3
-typing-extensions==4.13.0
-urllib3==2.3.0
+typing-extensions==4.13.2
+urllib3==2.4.0

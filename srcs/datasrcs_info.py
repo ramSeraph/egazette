@@ -305,6 +305,13 @@ srcinfos = {
         'start_date': datetime(2021, 1, 1),
         'collection': ''
     },
+    'puducherry' : {
+        'languages' : ['eng', 'tam', 'fre'],
+        'source'    : 'Government of Puducherry',
+        'category'  : 'Puducherry Gazette',
+        'start_date': datetime(2011, 1, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
