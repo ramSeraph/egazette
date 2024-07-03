@@ -29,6 +29,7 @@ from . import andaman
 from . import nagaland
 from . import lakshadweep
 from . import dadranagarhaveli
+from . import puducherry
 
 from .datasrcs_info import srcinfos
 
@@ -68,6 +69,7 @@ srcdict = { \
 'nagaland'             : nagaland.Nagaland, \
 'lakshadweep'          : lakshadweep.Lakshadweep, \
 'dadranagarhaveli'     : dadranagarhaveli.DadraNagarHaveli,\
+'puducherry'           : puducherry.Puducherry, \
 }
 
 srchierarchy = {
