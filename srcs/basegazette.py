@@ -96,7 +96,7 @@ class Downloader:
 
 
     def download_url_using_session(self, url, session = None, postdata = None, \
-                                   referer = None, headers = {}):
+                                   referer = None, headers = {}, allow_redirects = True):
         if session == None:
             session = self.get_session()
 
@@ -110,6 +110,7 @@ class Downloader:
         fixed_url = self.url_fix(url)        
         req_kwargs = {}
         req_kwargs['timeout'] = self.request_timeout_secs
+        req_kwargs['allow_redirects'] = allow_redirects
 
         proxydict = utils.get_proxydict(self.hostname)
         if proxydict is not None:
@@ -246,6 +247,23 @@ class BaseGazette(Downloader):
     def is_valid_gazette(self, doc, min_size):
         return (min_size <= 0 or len(doc) > min_size)
 
+
+    def pull_gazette(self, gurl, referer = None, postdata = None,
+                     cookiefile = None, headers = {}, \
+                     encodepost = True):
+        if cookiefile:
+            response = self.download_url(gurl, referer = referer, \
+                                         postdata = postdata, loadcookies = cookiefile,\
+                                         headers = headers, encodepost = encodepost)
+        else:
+            # TODO: why no header passing?
+            response = self.download_url(gurl, postdata = postdata, \
+                                         encodepost = encodepost, \
+                                         referer = referer)
+
+        return response
+
+
     def save_gazette(self, relurl, gurl, metainfo, postdata = None, \
                      referer = None, cookiefile = None, validurl = True, \
                      min_size=0, count=0, hdrs = {}, encodepost = True):
@@ -258,14 +276,9 @@ class BaseGazette(Downloader):
 
         if self.storage_manager.should_download_raw(relurl, gurl, \
                                                     validurl = validurl):
-            if cookiefile:
-                response = self.download_url(gurl, referer = referer, \
-                                 postdata = postdata, loadcookies = cookiefile,\
-                                 headers = hdrs, encodepost = encodepost)
-            else:
-                response = self.download_url(gurl, postdata = postdata, \
-                                             encodepost = encodepost, \
-                                             referer = referer)
+            response = self.pull_gazette(gurl, referer = referer, \
+                                         postdata = postdata, cookiefile = cookiefile, \
+                                         headers = hdrs, encodepost = encodepost)
 
             if response == None:
                 return updated
