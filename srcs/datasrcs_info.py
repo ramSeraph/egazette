@@ -3,17 +3,17 @@ from datetime import datetime
 
 TEST_PREFIX = 'egaztest.'
 
-def basic_identifier(relurl, metainfo):
+def basic_identifier(relurl, metainfo, prefix_len):
     identifier = relurl.replace('/', '.')
     return identifier
 
-def bihar_identifier(relurl, metainfo):
+def bihar_identifier(relurl, metainfo, prefix_len):
     dateobj = metainfo.get_date()
     datestr = dateobj.strftime('%Y-%m-%d')
     num = relurl.split('/')[-1]
     return f'{datestr}.{num}'
 
-def madhyapradesh_identifier(relurl, metainfo):
+def madhyapradesh_identifier(relurl, metainfo, prefix_len):
     dateobj = metainfo.get_date()
     datestr = dateobj.strftime('%Y-%m-%d')
     gznum   = metainfo['gznum']
@@ -26,7 +26,7 @@ def kerala_identifier(relurl, metainfo, prefix_len):
     identifier = identifier[:69]
     return identifier
 
-def goa_identifier(relurl, metainfo):
+def goa_identifier(relurl, metainfo, prefix_len):
     gznum  = metainfo['gznum']
     series = metainfo['series']
     identifier = f'{gznum}.{series}'
@@ -362,6 +362,14 @@ srcinfos = {
         'start_date': datetime(1980, 2, 28),
         'collection': ''
     },
+    'sikkim' : {
+        'languages' : ['eng'],
+        'source'    : 'Government of Sikkim',
+        'category'  : 'Sikkim Gazette',
+        'start_date': datetime(1975, 9, 8),
+        'identifier_fn': truncated_identifier,
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
@@ -381,15 +389,16 @@ def get_identifier(relurl, metainfo, to_sandbox):
     srcname = words[0]
     relurl  = '/'.join(words[1:])
 
-    relurl, _  = re.subn(r"[',&:%\s;()–]", '', relurl)
+    relurl, _ = re.subn(r"[',&:%\s;()–]", '', relurl)
 
     srcinfo = srcinfos[srcname]
 
     identifier_fn = srcinfo.get('identifier_fn', basic_identifier)
 
-    identifier = identifier_fn(relurl, metainfo)
-
     prefix = get_prefix(srcname, to_sandbox=to_sandbox)
+
+    identifier = identifier_fn(relurl, metainfo, len(prefix))
+
     return prefix + identifier
 
 

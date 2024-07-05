@@ -36,6 +36,7 @@ from . import arunachal
 from . import assam
 from . import meghalaya
 from . import mizoram
+from . import sikkim
 
 from .datasrcs_info import srcinfos
 
@@ -83,6 +84,7 @@ srcdict = { \
 'assam'                : assam.Assam, \
 'meghalaya'            : meghalaya.Meghalaya, \
 'mizoram'              : mizoram.Mizoram, \
+'sikkim'               : sikkim.Sikkim, \
 }
 
 srchierarchy = {
