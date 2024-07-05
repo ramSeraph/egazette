@@ -90,7 +90,7 @@ class Downloader:
 
 
     def download_url_using_session(self, url, session = None, postdata = None, \
-                                   referer = None, headers = {}):
+                                   referer = None, headers = {}, allow_redirects = True):
         if session == None:
             session = self.get_session()
 
@@ -102,7 +102,10 @@ class Downloader:
             headers['Referer'] = referer
 
         fixed_url = self.url_fix(url)        
-        req_kwargs = { 'timeout': self.request_timeout_secs }
+        req_kwargs = { 
+            'timeout': self.request_timeout_secs,
+            'allow_redirects': allow_redirects,
+        }
 
         try:
             if postdata == None:
