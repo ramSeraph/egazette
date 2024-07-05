@@ -382,6 +382,13 @@ srcinfos = {
         'start_date': datetime(1991, 1, 1),
         'collection': ''
     },
+    'rajasthan' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Government of Rajasthan',
+        'category'  : 'Rajasthan Gazette',
+        'start_date': datetime(2019, 4, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
