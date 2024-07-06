@@ -206,6 +206,11 @@ def nh_score(img, cycles, threshold):
                 data[x, y] = 255
                             
 
+def tripura(img, outfile = None):
+    img = img.convert('L')
+    nh_score(img, 10, 10000 * 1000 * 1000)
+    val = tesseract(img)
+    return val
 
 def himachal(img, outfile = None):
     m = 2 
