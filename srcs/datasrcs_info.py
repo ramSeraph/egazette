@@ -368,6 +368,13 @@ srcinfos = {
         'identifier_fn': sikkim_identifier,
         'collection': ''
     },
+    'tripura' : {
+        'languages' : ['eng'],
+        'source'    : 'Government of Tripura',
+        'category'  : 'Tripura Gazette',
+        'start_date': datetime(2018, 1, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
