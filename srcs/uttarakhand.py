@@ -25,17 +25,6 @@ class Uttarakhand(BaseGazette):
         search_form = d.find('form', {'action': endp})
         return search_form
 
-    def get_selected_option(self, select):
-        option = select.find('option', {'selected': 'selected'})
-        if option == None:
-            option = select.find('option')
-        if option == None:
-            return ''
-        val = option.get('value')
-        if val == None:
-            val = ''
-        return val
-
     def get_form_data(self, webpage, dateobj):
         search_form = self.get_search_form(webpage, self.search_endp)
         if search_form == None:
@@ -57,21 +46,12 @@ class Uttarakhand(BaseGazette):
                     continue
             elif tag.name == 'select':        
                 name = tag.get('name')
-                value = self.get_selected_option(tag)
+                value = utils.get_selected_option(tag)
             if name:
                 if value == None:
                     value = ''
                 formdata.append((name, value))
         return formdata
-
-    def replace_field(self, formdata, k, v):
-        newdata = []
-        for k1, v1 in formdata:
-            if k1 == k:
-                newdata.append((k1, v))
-            else:
-                newdata.append((k1, v1))
-        return newdata
 
     def get_mismatched_field(self, formdata, expected):
         mismatched = None
@@ -111,9 +91,9 @@ class Uttarakhand(BaseGazette):
             if field_to_update == None:
                 break
 
-            formdata = self.replace_field(formdata, field_to_update, \
-                                          expected_fields[field_to_update])
-            formdata = self.replace_field(formdata, '__EVENTTARGET', field_to_update)
+            formdata = utils.replace_field(formdata, field_to_update, \
+                                           expected_fields[field_to_update])
+            formdata = utils.replace_field(formdata, '__EVENTTARGET', field_to_update)
 
             response = self.download_url(self.searchurl, savecookies = cookiejar, \
                                        loadcookies = cookiejar, postdata = formdata, \

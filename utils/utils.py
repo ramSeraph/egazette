@@ -159,6 +159,26 @@ def url_to_filename(url, catchpath, catchquery):
         return filename
     return None
 
+def replace_field(formdata, k, v):
+    newdata = []
+    for k1, v1 in formdata:
+        if k1 == k:
+            newdata.append((k1, v))
+        else:
+            newdata.append((k1, v1))
+    return newdata
+
+def get_selected_option(select):
+    option = select.find('option', {'selected': 'selected'})
+    if option == None:
+        option = select.find('option')
+    if option == None:
+        return ''
+    val = option.get('value')
+    if val == None:
+        val = ''
+    return val
+
 def get_tag_contents(node):
     if type(node) == NavigableString:
         return '%s' % node 
