@@ -25,6 +25,8 @@ from . import stgeorge
 from . import goa
 from . import csl 
 
+from . import andaman
+
 from .datasrcs_info import srcinfos
 
 srcdict = { \
@@ -57,6 +59,7 @@ srcdict = { \
 'goa'                  : goa.Goa, \
 'csl_weekly'           : csl.CSLWeekly, \
 'csl_extraordinary'    : csl.CSLExtraordinary, \
+'andaman'              : andaman.Andaman, \
 }
 
 srchierarchy = {
@@ -71,7 +74,6 @@ srchierarchy = {
                              'delhi_weekly', 'delhi_extraordinary',
                              'cgweekly', 'cgextraordinary']))
 }
-
 
 def get_srcobjs(srclist, storage):
     srcobjs = []
