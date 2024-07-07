@@ -168,8 +168,10 @@ class MetaInfo(dict):
           ('subject',          'Subject'),      \
           ('office',           'Office'), \
           ('notification_num', 'Notification Number'), \
+          ('registry_num',     'Registry Number'), \
           ('partnum',          'Part Number'), \
           ('refnum',           'Reference Number'), \
+          ('ref_type',         'Reference Type'), \
           ('linknames',        'Gazette Links'), \
           ('url',              'Gazette Source'), \
           ('num',              'Number'), \
