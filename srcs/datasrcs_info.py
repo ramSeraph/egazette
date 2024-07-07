@@ -391,6 +391,13 @@ srcinfos = {
         'start_date': datetime(1991, 1, 1),
         'collection': ''
     },
+    'uttarpradesh' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Government of Uttar Pradesh',
+        'category'  : 'Uttar Pradesh Gazette',
+        'start_date': datetime(2018, 12, 21),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
