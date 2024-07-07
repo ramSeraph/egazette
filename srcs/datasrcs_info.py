@@ -326,6 +326,14 @@ srcinfos = {
         'start_date': datetime(2014, 1, 1),
         'collection': ''
     },
+    'arunachal' : {
+        'languages' : ['eng'],
+        'source'    : 'Government of Arunachal pradesh',
+        'category'  : 'Arunachal Pradesh Gazette',
+        'start_date': datetime(2020, 1, 1),
+        'collection': ''
+    },
+
 }
 
 def get_prefix(srcname, to_sandbox=False):
