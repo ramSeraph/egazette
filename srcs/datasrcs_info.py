@@ -20,8 +20,8 @@ def madhyapradesh_identifier(relurl, metainfo):
     gztype  = metainfo['gztype']
     return f'{datestr}.{gznum}.{gztype}'
 
-def kerala_identifier(relurl, metainfo):
-    identifier = basic_identifier(relurl, metainfo)
+def kerala_identifier(relurl, metainfo, prefix_len):
+    identifier = basic_identifier(relurl, metainfo, prefix_len)
     # translation from an earlier cutoff of 80 which included 'kerala_new.' prefix 
     identifier = identifier[:69]
     return identifier
@@ -31,6 +31,13 @@ def goa_identifier(relurl, metainfo):
     series = metainfo['series']
     identifier = f'{gznum}.{series}'
     return identifier
+
+def truncated_identifier(relurl, metainfo, prefix_len):
+    identifier = basic_identifier(relurl, metainfo, prefix_len)
+    if len(identifier) + prefix_len > 100:
+        identifier = identifier[:100-prefix_len]
+    return identifier
+
 
 srcinfos = {
     # 'in.gazette.<year>.<id>' start_year: 1922 end_year: 2017 count: 36003
@@ -324,6 +331,14 @@ srcinfos = {
         'source'    : 'Government of Jammu and Kashmir',
         'category'  : 'Jammu and Kashmir Gazette',
         'start_date': datetime(2014, 1, 1),
+        'collection': ''
+    },
+    'arunachal' : {
+        'languages' : ['eng'],
+        'source'    : 'Government of Arunachal pradesh',
+        'category'  : 'Arunachal Pradesh Gazette',
+        'start_date': datetime(2020, 1, 1),
+        'identifier_fn': truncated_identifier,
         'collection': ''
     },
 }
