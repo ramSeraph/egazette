@@ -249,6 +249,13 @@ srcinfos = {
         'source'    : 'Government of India',
         'category'  : 'Extrordinary Gazette of India',
         'enabled'   : False
+    },
+    'andaman' : {
+        'languages' : ['eng'], 
+        'source'    : 'Government of Andaman and Nicobar',
+        'category'  : 'Andaman and Nicobar Gazette',
+        'start_date': datetime(1996, 1, 1),
+        'collection': '',
     }
 }
 
