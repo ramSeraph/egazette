@@ -3,11 +3,77 @@ import re
 import os
 import datetime
 
-from pprint import pprint
 
 from ..utils import utils
 from ..utils.metainfo import MetaInfo
 from .basegazette import BaseGazette
+
+
+def parse_eog_info(filename, link_txt, subject):
+    out = {}
+    reobj = re.match(r'(?P<num>\d+)(.|-)(?P<rest>.*)', filename)
+    if reobj is None:
+        return None
+
+    g = reobj.groupdict()
+    num = g['num']
+    out['gznum'] = num
+
+    rest = g['rest']
+
+    if '/' in link_txt or 'act' not in link_txt.lower():
+        notification_num = link_txt
+        reobj = re.match(r'eog\s*(\.|-)?\s*no\s*(\.)?\s*\d+\s*(\.|-|,)\s*(?P<rest>.*)', \
+                         link_txt, flags=re.IGNORECASE)
+        if reobj is not None:
+            g = reobj.groupdict()
+            notification_num = g['rest']
+        out['notification_num'] = notification_num
+
+        if subject != notification_num and subject not in ['NA', 'GA']:
+            reobj = re.match(r'eog\s*(\.)?\s*no\s*(\.)?\s*\d+', \
+                             subject, flags=re.IGNORECASE)
+            if not reobj:
+                out['department'] = subject
+
+        if 'bill' in link_txt.lower() and '/' not in link_txt:
+            out['subject'] = subject
+            out['department'] = 'Legislative Assembly'
+    else:
+        out['notification_num'] = subject
+        out['subject'] = link_txt
+        out['department'] = 'Legislative Assembly'
+
+    if 'department' not in out:
+        rest = rest.replace('_', ' ')
+        rest = rest.replace('-', ' ')
+        rest = rest.strip()
+        rest = re.sub('^E\s*(\.)?\s*O\s*(\.)?\s*(\.)?\s*G(azette)?', 'EOG', rest)
+
+        reobj = re.search(r'eog\s*(\.)?\s*(no)?\s*(\.)?\s*(\d+)?\s*(\.)?\s*(\d{4})?\s*(?P<rest>\D+)\s*(\d{4})?', \
+                          rest, flags=re.IGNORECASE)
+        if reobj is not None:
+            g = reobj.groupdict()
+            rest_1 = g['rest']
+            rest_1 = rest_1.strip()
+            if rest_1 != '':
+                out['department'] = rest_1
+
+    if 'department' in out:
+        department = out['department']
+        if 'bill' in department.lower() or 'act' in department.lower() and 'subject' not in out: 
+            out['subject'] = department
+            out['department'] = 'Legislative Assembly'
+
+    if 'department' in out:
+        department = out['department']
+        reobj = re.search(r'\d+\.?\s*eog\s*(\.)?\s*(no)?\s*(\.)?\s*(\d+)?\s*(\.)?\s*(\d{4})?\s*(?P<rest>\D+)\s*(\d{4})?', \
+                          department, flags=re.IGNORECASE)
+        if reobj is not None:
+            g = reobj.groupdict()
+            out['department'] = g['rest']
+    return out
+
 
 def parse_ng_subject(txt):
     reobj = re.match(r'(Complete)?\s*Normal\s+Gazette\s*-?\s*(of)?\s*(?P<year>\d{4})', txt, flags=re.IGNORECASE)
@@ -66,15 +132,26 @@ class Arunachal(BaseGazette):
     def parse_date(self, txt):
         reobj = re.search(r'published\s+date\s+:\s+(?P<month>\w+)(\.)?\s+(?P<day>\d+)(,)?\s+(?P<year>\d+)', txt)
         if reobj is None:
-            self.logger.warning('Unable to parse %s', txt)
+            self.logger.warning('Unable to parse date string %s', txt)
             return None
 
         g = reobj.groupdict()
-        pubdate = datetime.datetime.strptime(f'{g["day"]}-{g["month"][:3]}-{g["year"]}', '%d-%b-%Y').date()
+        year  = g['year']
+        month = g['month']
+        day   = g['day']
+        try:
+            pubdate = datetime.datetime.strptime(f'{day}-{month[:3]}-{year}', '%d-%b-%Y').date()
+        except Exception:
+            self.logger.warning('Unable to parse date year: %s, month: %s, day: %s', year, month, day)
+            return None
+
         return pubdate
 
     def enhance_ng_metainfo(self, txt, metainfo):
         parsed = parse_ng_subject(txt)
+        if parsed is None:
+            return
+
         if 'year' in parsed:
             metainfo['year'] = parsed['year']
         else:
@@ -85,6 +162,13 @@ class Arunachal(BaseGazette):
 
         if 'part' in parsed:
             metainfo['partnum'] = parsed['part']
+
+    def enhance_eog_metainfo(self, filename, link_txt, subject, metainfo):
+        eog_info = parse_eog_info(filename, link_txt, subject)
+        if eog_info is None:
+            return
+
+        metainfo.update(eog_info)
 
     def process_row_ordinary(self, form):
         metainfo = MetaInfo()
@@ -168,10 +252,7 @@ class Arunachal(BaseGazette):
             if k == 'filename':
                 filename = v.split('/')[-1].replace('.pdf', '')
 
-        print(f'{filename=}, {link_txt=}, {subject=}')
-        #metainfo['notification_num'] = link_txt
-        #metainfo['subject'] = subject
-
+        self.enhance_eog_metainfo(filename, link_txt, subject, metainfo)
 
         return metainfo
 
