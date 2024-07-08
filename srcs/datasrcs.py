@@ -31,8 +31,10 @@ from . import nagaland
 from . import lakshadweep
 from . import dadranagarhaveli
 from . import puducherry
+from . import jammuandkashmir
 
 from .datasrcs_info import srcinfos
+
 
 srcdict = { \
 'central_weekly'       : central.CentralWeekly, \
@@ -72,6 +74,7 @@ srcdict = { \
 'dadranagarhaveli'     : dadranagarhaveli.DadraNagarHaveli,\
 'puducherry'           : puducherry.Puducherry, \
 'ladakh'               : ladakh.Ladakh, \
+'jammuandkashmir'      : jammuandkashmir.JammuAndKashmir, \
 }
 
 srchierarchy = {
