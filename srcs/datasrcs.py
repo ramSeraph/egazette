@@ -25,6 +25,8 @@ from . import stgeorge
 from . import goa
 from . import csl 
 
+from . import dadranagarhaveli
+
 srcdict = { \
 'central_weekly'       : central.CentralWeekly, \
 'central_extraordinary': central.CentralExtraordinary, \
@@ -54,6 +56,7 @@ srcdict = { \
 'goa'                  : goa.Goa, \
 'csl_weekly'           : csl.CSLWeekly, \
 'csl_extraordinary'    : csl.CSLExtraordinary, \
+'dadranagarhaveli'     : dadranagarhaveli.DadraNagarHaveli,\
 }
 
 srcnames = { \
@@ -85,6 +88,7 @@ srcnames = { \
 'goa'                  : 'Government of Goa', \
 'csl_weekly'           : 'Government of India' , \
 'csl_extraordinary'    : 'Government of India', \
+'dadranagarhaveli'     : 'U.T. Administration of Dadra And Nagar Haveli And Daman And Diu', \
 }
 
 categories = { \
@@ -116,6 +120,7 @@ categories = { \
 'goa'                  : 'Goa Gazette', \
 'csl_weekly'           : 'Weekly Gazette of India' , \
 'csl_extraordinary'    : 'Extraordinary Gazette of India', \
+'dadranagarhaveli'     : 'Gazette of Dadra And Nagar Haveli And Daman And Diu', \
 }
 
 languages = { \
@@ -147,6 +152,7 @@ languages = { \
 'goa'                  : ['eng', 'por'], \
 'csl_weekly'           : ['eng', 'hin'], \
 'csl_extraordinary'    : ['eng', 'hin'], \
+'dadranagarhaveli'     : ['eng', 'hin'], \
 }
 
 srchierarchy = { \
