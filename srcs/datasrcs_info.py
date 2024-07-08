@@ -319,6 +319,13 @@ srcinfos = {
         'start_date': datetime(2020, 9, 18),
         'collection': ''
     },
+    'jammuandkashmir' : {
+        'languages' : ['eng', 'urd'],
+        'source'    : 'Government of Jammu and Kashmir',
+        'category'  : 'Jammu and Kashmir Gazette',
+        'start_date': datetime(2014, 1, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
