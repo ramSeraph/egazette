@@ -38,7 +38,6 @@ def truncated_identifier(relurl, metainfo, prefix_len):
         identifier = identifier[:100-prefix_len]
     return identifier
 
-
 srcinfos = {
     # 'in.gazette.<year>.<id>' start_year: 1922 end_year: 2017 count: 36003
     # 'in.gazette.central_weekly.<year>-<month>-<day>.<id>' start_date: 2018-09-06 end_date: 2018-09-06 count: 1
@@ -338,6 +337,14 @@ srcinfos = {
         'source'    : 'Government of Arunachal pradesh',
         'category'  : 'Arunachal Pradesh Gazette',
         'start_date': datetime(2020, 1, 1),
+        'identifier_fn': truncated_identifier,
+        'collection': ''
+    },
+    'assam' : {
+        'languages' : ['eng', 'asm'],
+        'source'    : 'Government of Assam',
+        'category'  : 'Assam Gazette',
+        'start_date': datetime(2016, 1, 1),
         'identifier_fn': truncated_identifier,
         'collection': ''
     },

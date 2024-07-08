@@ -33,9 +33,9 @@ from . import dadranagarhaveli
 from . import puducherry
 from . import jammuandkashmir
 from . import arunachal
+from . import assam
 
 from .datasrcs_info import srcinfos
-
 
 
 srcdict = { \
@@ -78,6 +78,7 @@ srcdict = { \
 'ladakh'               : ladakh.Ladakh, \
 'jammuandkashmir'      : jammuandkashmir.JammuAndKashmir, \
 'arunachal'            : arunachal.Arunachal, \
+'assam'                : assam.Assam, \
 }
 
 srchierarchy = {
