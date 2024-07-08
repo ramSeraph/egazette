@@ -333,7 +333,13 @@ srcinfos = {
         'start_date': datetime(2020, 1, 1),
         'collection': ''
     },
-
+    'assam' : {
+        'languages' : ['eng', 'asm'],
+        'source'    : 'Government of Assam',
+        'category'  : 'Assam Gazette',
+        'start_date': datetime(2016, 1, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
