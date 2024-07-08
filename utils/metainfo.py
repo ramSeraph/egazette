@@ -74,7 +74,7 @@ class MetaInfo(dict):
     def get_subject(self):
         return self.get_field(SUBJECT)
 
-    def get_gztype(self, value):
+    def get_gztype(self):
         return self.get_field(GZTYPE)
 
     def get_ia_goir_description(self, srcinfo):
@@ -170,6 +170,7 @@ class MetaInfo(dict):
           ('notification_num', 'Notification Number'), \
           ('registry_num',     'Registry Number'), \
           ('volume_num',       'Volume Number'), \
+          ('series_num',       'Series Number'), \
           ('partnum',          'Part Number'), \
           ('refnum',           'Reference Number'), \
           ('ref_type',         'Reference Type'), \
@@ -241,6 +242,10 @@ class MetaInfo(dict):
         volume_num = self.get('volume_num', None)
         if volume_num is not None:
             title.append(f'Volume {volume_num}')
+
+        series_num = self.get('series_num', None)
+        if series_num is not None:
+            title.append(f'Series {series_num}')
 
         partnum = self.get('partnum', None)
         if partnum is not None:
