@@ -41,8 +41,10 @@ from . import tripura
 from . import gujarat
 from . import rajasthan
 from . import uttarpradesh
+from . import chandigarh
 
 from .datasrcs_info import srcinfos
+
 
 
 srcdict = { \
@@ -94,6 +96,7 @@ srcdict = { \
 'gujarat'              : gujarat.Gujarat, \
 'rajasthan'            : rajasthan.Rajasthan, \
 'uttarpradesh'         : uttarpradesh.UttarPradesh, \
+'chandigarh'           : chandigarh.Chandigarh, \
 }
 
 srchierarchy = {

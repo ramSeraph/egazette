@@ -406,6 +406,14 @@ srcinfos = {
         'start_date': datetime(2018, 12, 21),
         'collection': ''
     },
+    'chandigarh' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Chandigarh Administration',
+        'category'  : 'Chandigarh Gazette',
+        'start_date': datetime(2019, 10, 1),
+        'collection': ''
+    },
+
 }
 
 def get_prefix(srcname, to_sandbox=False):
