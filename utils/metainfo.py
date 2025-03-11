@@ -163,12 +163,15 @@ class MetaInfo(dict):
 
         return ', '.join(title)
 
-    def get_ia_metadata(self, srcinfo):
+    def get_ia_metadata(self, srcinfo, to_sandbox):
         creator   = srcinfo['source']
         category  = srcinfo['category']
         languages = srcinfo['languages']
 
-        collection = srcinfo.get('collection', 'gazetteofindia')
+        if to_sandbox:
+            collection = 'test_collection'
+        else:
+            collection = srcinfo.get('collection', 'gazetteofindia')
 
         title = self.get_ia_title(srcinfo)
 
