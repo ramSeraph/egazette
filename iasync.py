@@ -608,8 +608,10 @@ if __name__ == '__main__':
             handle_relurl(gazette_ia, relurl, to_upload, to_update, stats)
 
 
+    msg = stats.get_message(srcnames)
+    print(msg)
 
     if to_addrs:
-        msg = stats.get_message(srcnames)
         reporting.report(server_token, from_addr, to_addrs,   \
                         'Stats for gazette on %s' % datetime.date.today(), msg)
+
