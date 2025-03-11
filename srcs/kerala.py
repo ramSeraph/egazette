@@ -14,6 +14,7 @@ from calmjs.parse.asttypes import FunctionCall
 
 from .basegazette import BaseGazette
 from ..utils import utils
+from ..utils.metainfo import MetaInfo
 
 def tokenize(number):
     token = ''
@@ -467,7 +468,7 @@ class Kerala(BaseGazette):
                         title = utils.get_tag_contents(x)
                         title = utils.remove_spaces(title)
 
-                        metainfo = utils.MetaInfo()
+                        metainfo = MetaInfo()
                         minfos.append(metainfo)
 
                         metainfo.set_title(title)
