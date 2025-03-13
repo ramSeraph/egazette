@@ -38,6 +38,7 @@ srcdict = { \
 'karnataka'            : karnataka.Karnataka, \
 'maharashtra'          : maharashtra.Maharashtra, \
 'telangana'            : telangana.Telangana, \
+'telangana_goir'       : telangana.TelanganaGOIR, \
 'tamilnadu'            : tamilnadu.TamilNadu, \
 'odisha'               : odisha.Odisha, \
 'jharkhand'            : jharkhand.Jharkhand, \
@@ -69,6 +70,7 @@ srcnames = { \
 'karnataka'            : 'Government of Karnataka', \
 'maharashtra'          : 'Government of Maharashtra', \
 'telangana'            : 'Government of Telangana', \
+'telangana_goir'       : 'Government of Telangana', \
 'tamilnadu'            : 'Government of Tamil Nadu', \
 'odisha'               : 'Government of Odisha', \
 'jharkhand'            : 'Government of Jharkhand', \
@@ -100,6 +102,7 @@ categories = { \
 'karnataka'            : 'Karnataka Gazette', \
 'maharashtra'          : 'Maharashtra Gazette', \
 'telangana'            : 'Telangana Gazette', \
+'telangana_goir'       : 'Telangana Government Order', \
 'tamilnadu'            : 'Tamil Nadu Gazette', \
 'odisha'               : 'Odisha Gazette', \
 'jharkhand'            : 'Jharkhand Gazette', \
