@@ -35,6 +35,7 @@ srcdict = { \
 'cgextraordinary'      : chattisgarh.ChattisgarhExtraordinary, \
 'andhra'               : andhra.Andhra, \
 'andhraarchive'        : andhra.AndhraArchive, \
+'andhra_goir'          : andhra.AndhraGOIR, \
 'karnataka'            : karnataka.Karnataka, \
 'maharashtra'          : maharashtra.Maharashtra, \
 'telangana'            : telangana.Telangana, \
@@ -66,6 +67,7 @@ srcnames = { \
 'cgextraordinary'      : 'Government of Chattisgarh', \
 'andhra'               : 'Government of Andhra Pradesh', \
 'andhraarchive'        : 'Government of Andhra Pradesh', \
+'andhra_goir'          : 'Government of Andhra Pradesh', \
 'karnataka'            : 'Government of Karnataka', \
 'maharashtra'          : 'Government of Maharashtra', \
 'telangana'            : 'Government of Telangana', \
@@ -97,6 +99,7 @@ categories = { \
 'cgextraordinary'      : 'Chattisgarh Gazette - Extraordinary', \
 'andhra'               : 'Andhra Pradesh Gazette', \
 'andhraarchive'        : 'Andhra Pradesh Gazette', \
+'andhra_goir'          : 'Andhra Pradesh Government Order', \
 'karnataka'            : 'Karnataka Gazette', \
 'maharashtra'          : 'Maharashtra Gazette', \
 'telangana'            : 'Telangana Gazette', \
@@ -128,6 +131,7 @@ languages = { \
 'cgextraordinary'      : ['eng', 'hin'], \
 'andhra'               : ['eng', 'tel'], \
 'andhraarchive'        : ['eng', 'tel'], \
+'andhra_goir'          : ['eng', 'tel'], \
 'karnataka'            : ['eng', 'kan'], \
 'maharashtra'          : ['eng', 'mar'], \
 'telangana'            : ['eng', 'tel'], \
