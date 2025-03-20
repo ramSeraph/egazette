@@ -1,4 +1,5 @@
 import re
+
 URL        = 'url'
 HREF       = 'href'
 TITLE      = 'title'
@@ -75,4 +76,209 @@ class MetaInfo(dict):
 
     def get_gztype(self, value):
         return self.get_field(GZTYPE)
+
+    def get_ia_goir_description(self, srcinfo):
+        desc = []
+
+        keys = [ \
+          ('gotype',      'Order Type'),  \
+          ('gonum',       'Order Number'), \
+          ('date',        'Date'), \
+          ('department',  'Department'), \
+          ('category',    'Category'), \
+          ('section',     'Section'), \
+          ('url',         'Order Source'), \
+          ('abstract',    'Abstract'), \
+        ]
+
+        member_keys = set(self.keys())
+        for k, kdesc in keys:
+             if k not in member_keys:
+                 continue
+
+             v = self.get(k)
+             if k == 'date':
+                 v = f'{v}'
+             elif k == 'url':
+                v = f'<a href="{v}">URL</a>'
+             else:    
+                 v = self.get(k).strip()
+                 
+             if v:
+                 desc.append((kdesc, v))
+
+        known_keys = set([k for k, kdesc in keys])
+
+        for k, v in self.items():
+            if k not in known_keys:
+                if type(v) in (str,):
+                    v = v.strip()
+                elif isinstance(v, list):
+                    v = f'{v}'
+                if v:
+                    desc.append((k.title(), v))
+
+
+        # style copied from orgpedia's MaharashtraGRs
+        header = f'<b>{srcinfo["category"]}</b><br><br>'
+
+        def get_row(d):
+            key_cell = f'<td style="vertical-align: top"><b>{d[0]}: </b></td>'
+            val_cell = f'<td style="vertical-align: bottom">{d[1]}</td>'
+            return f'<tr>{key_cell} {val_cell}</tr>'
+
+        rows_html = '\n'.join([get_row(d) for d in desc])
+
+        return f'{header}<p><table>\n{rows_html}\n</table></p>'
+
+
+    def get_ia_goir_title(self, srcinfo):
+        category = srcinfo['category']
+        title = [category]
+
+        date = self.get('date', None)
+        if date is not None:
+            title.append(f'{date}')
+
+        department = self.get('department', None)
+        if department is not None:
+            title.append(department.title())
+
+        gotype = self.get('gotype', None)
+        if gotype is not None:
+            title.append(gotype.title())
+
+        gonum = self.get('gonum', None)
+        if gonum is not None:
+            title.append(f'Number {gonum}')
+
+        return ', '.join(title)
+
+
+    def get_ia_gazette_description(self):
+        desc = []
+
+        ignore_keys  = set(['linknames', 'links', 'linkids'])
+        keys = [ \
+          ('gztype',           'Gazette Type'),  \
+          ('gznum',            'Gazette Number'), \
+          ('date',             'Date'), \
+          ('ministry',         'Ministry'),   \
+          ('department',       'Department'), \
+          ('subject',          'Subject'),      \
+          ('office',           'Office'), \
+          ('notification_num', 'Notification Number'), \
+          ('partnum',          'Part Number'), \
+          ('refnum',           'Reference Number'), \
+          ('linknames',        'Gazette Links'), \
+          ('url',              'Gazette Source'), \
+          ('num',              'Number'), \
+          ('gazetteid',        'Gazette ID'), \
+        ]
+
+        member_keys = set(self.keys())
+        for k, kdesc in keys:
+             if k not in member_keys:
+                 continue
+
+             v = self.get(k)
+             if k == 'date':
+                 v = f'{v}'
+             elif k == 'linknames':
+                linkids = self.get('linkids')
+                i = 0
+                v = []
+                for linkname in self.get(k):
+                    identifier = linkids[i]
+                    v.append(f'<a href="/details/{identifier}">{linkname}</a>')
+                    i += 1
+                v = '<br/>'.join(v)
+             elif k == 'url':
+                v = f'<a href="{v}">URL</a>'
+             else:    
+                 v = self.get(k).strip()
+                 
+             if v:
+                 desc.append((kdesc, v))
+
+        known_keys = set([k for k, kdesc in keys])
+
+        for k, v in self.items():
+            if k not in known_keys and k not in ignore_keys:
+                if type(v) in (str,):
+                    v = v.strip()
+                elif isinstance(v, list):
+                    v = f'{v}'
+                if v:
+                    desc.append((k.title(), v))
+
+
+        desc_html = '<br/>'.join([f'{d[0]}: {d[1]}' for d in desc])
+        return f'<p>{desc_html}</p>'
+
+    def get_ia_description(self, srctype, srcinfo):
+        if srctype == 'gazette':
+            return self.get_ia_gazette_description()
+
+        return self.get_ia_goir_description(srcinfo)
+
+    def get_ia_gazette_title(self, srcinfo):
+        category = srcinfo['category']
+        title = [category]
+
+        date = self.get('date', None)
+        if date is not None:
+            title.append(f'{date}')
+
+        gztype = self.get('gztype', None)
+        if gztype is not None:
+            title.append(gztype)
+
+        partnum = self.get('partnum', None)
+        if partnum is not None:
+            if re.search(r'\bPart\b', partnum):
+                title.append(partnum)
+            else:    
+                title.append(f'Part {partnum}')
+
+        gznum = self.get('gznum', None)
+        if gznum is not None:
+            title.append(f'Number {gznum}')
+
+        return ', '.join(title)
+
+    def get_ia_title(self, srcinfo, srctype):
+        if srctype == 'gazette':
+            return self.get_ia_gazette_title(srcinfo)
+
+        return self.get_ia_goir_title(srcinfo)
+
+    def get_ia_metadata(self, srcinfo, to_sandbox):
+        creator   = srcinfo['source']
+        category  = srcinfo['category']
+        languages = srcinfo['languages']
+        srctype   = srcinfo.get('type', 'gazette')
+
+        if to_sandbox:
+            collection = 'test_collection'
+        else:
+            collection = 'gazetteofindia' if srctype == 'gazette' else None
+
+        title = self.get_ia_title(srcinfo, srctype)
+
+        metadata = { \
+            'mediatype' :'texts', \
+            'language'   : languages, 'title': title, 'creator': creator, \
+            'subject'    : category
+        } 
+
+        if collection is not None:
+            metadata['collection'] = collection
+         
+        dateobj = self.get_date()
+        if dateobj:
+            metadata['date'] = f'{dateobj}'
+        
+        metadata['description'] = self.get_ia_description(srctype, srcinfo)
+        return metadata
 
