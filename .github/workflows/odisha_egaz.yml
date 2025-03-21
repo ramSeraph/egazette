@@ -1,0 +1,38 @@
+name: Odisha Egazette Gazette archiver
+
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  Run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: 'workspace'
+
+      - name: Pull and Push call
+        id: local-action
+        uses: ./.github/actions/common/
+        env:
+          OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+          OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+          OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
+          OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+          OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+          OCI_SSH_KEY_CONTENT: ${{ secrets.OCI_SSH_KEY_CONTENT }}
+        with:
+          branch: 'workspace'
+          source: 'odisha_egaz'
+          last_n_days: 180
+          ia_access_key: ${{ secrets.IA_ACCESS_KEY }}
+          ia_secret_key: ${{ secrets.IA_SECRET_KEY }}
+          proxy_needed: true
+          proxy_basic_auth: '${{ secrets.SIMPLE_PROXY_BASIC_AUTH }}'
+          oci_compartment_name: ${{ secrets.OCI_COMPARTMENT_NAME }}
