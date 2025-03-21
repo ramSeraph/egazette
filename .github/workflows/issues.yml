@@ -1,0 +1,217 @@
+name: Egazette Source Status Issue Monitor
+
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  # Check for violations
+  check-violations:
+    runs-on: ubuntu-latest
+    outputs:
+      violations: ${{ steps.check.outputs.violations }}
+    steps:
+      - uses: actions/checkout@v4.1.7
+        with:
+          ref: 'workspace'
+
+      - name: Check for violations
+        id: check
+        uses: ./.github/actions/issue-monitor/
+        with:
+          branch: 'workspace'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Find all open issues to check for closure
+  list-open-issues:
+    runs-on: ubuntu-latest
+    needs: check-violations
+    outputs:
+      open-issues: ${{ steps.list.outputs.open-issues }}
+    steps:
+      - name: List all open source-status issues
+        id: list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get all open issues with source-status label
+          open_issues=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/issues?labels=source-status&state=open&per_page=100" \
+            | jq -c '[.[] | {number: .number, labels: [.labels[].name]}]')
+          
+          echo "Open issues: $open_issues"
+          echo "open-issues=$open_issues" >> $GITHUB_OUTPUT
+
+  # Close issues for sources without violations
+  close-resolved-issues:
+    runs-on: ubuntu-latest
+    needs: [check-violations, list-open-issues]
+    if: needs.list-open-issues.outputs.open-issues != '[]'
+    strategy:
+      matrix:
+        issue: ${{ fromJson(needs.list-open-issues.outputs.open-issues) }}
+      fail-fast: false
+    steps:
+      - name: Check if issue should be closed
+        id: should-close
+        env:
+          VIOLATIONS: ${{ needs.check-violations.outputs.violations }}
+        run: |
+          set -euo pipefail
+          
+          # Extract source name from issue labels (exclude 'source-status' label)
+          issue_labels='${{ toJson(matrix.issue.labels) }}'
+          source=$(echo "$issue_labels" | jq -r '.[] | select(. != "source-status")')
+          
+          echo "Issue #${{ matrix.issue.number }} is for source: $source"
+          
+          # Check if this source is in the violations list
+          if echo "$VIOLATIONS" | jq -e --arg src "$source" 'index($src)' > /dev/null; then
+            echo "Source $source still has violations, keeping issue open"
+            echo "close=false" >> $GITHUB_OUTPUT
+          else
+            echo "Source $source is now resolved, closing issue"
+            echo "close=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Close resolved issue
+        if: steps.should-close.outputs.close == 'true'
+        uses: peter-evans/close-issue@v3.0.1
+        with:
+          issue-number: ${{ matrix.issue.number }}
+          comment: |
+            ✅ Auto-closing issue - Source violations have been resolved.
+            
+            The source is now within acceptable thresholds for both document dates and update frequency.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Create/update issues for each source with violations
+  manage-issues:
+    runs-on: ubuntu-latest
+    needs: check-violations
+    if: needs.check-violations.outputs.violations != '[]'
+    strategy:
+      matrix:
+        source: ${{ fromJson(needs.check-violations.outputs.violations) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4.1.7
+        with:
+          ref: 'workspace'
+
+      - name: Download violation files
+        uses: actions/download-artifact@v4
+        with:
+          name: violations
+          path: violations/
+
+      - name: Verify violation file exists
+        run: |
+          if [[ ! -f violations/${{ matrix.source }}.md ]]; then
+            echo "Error: violations/${{ matrix.source }}.md not found"
+            ls -la violations/
+            exit 1
+          fi
+          echo "Found violation file for ${{ matrix.source }}"
+
+      - name: Find existing open issue
+        id: find-open-issue
+        uses: micalevisk/last-issue-action@v2
+        with:
+          state: open
+          labels: |
+            source-status
+            ${{ matrix.source }}
+
+      - name: Find last issue (any state) and determine version
+        id: get-version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          
+          # Find the last issue (open or closed) with these labels to get the version number
+          last_issue=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/issues?labels=source-status,${{ matrix.source }}&state=all&per_page=1&sort=created&direction=desc" \
+            | jq -r '.[0]')
+          
+          if [[ "$last_issue" != "null" ]]; then
+            last_issue_number=$(echo "$last_issue" | jq -r '.number')
+            last_issue_state=$(echo "$last_issue" | jq -r '.state')
+            title=$(echo "$last_issue" | jq -r '.title')
+            echo "Last issue #$last_issue_number: $title (state: $last_issue_state)"
+            
+            # Extract version number from title "[Status Alert] source - N"
+            version=$(echo "$title" | sed -n 's/.*\[Status Alert\] ${{ matrix.source }} - \([0-9]\+\)/\1/p')
+            
+            if [[ "$version" =~ ^[0-9]+$ ]]; then
+              echo "Found version: $version"
+              
+              # If last issue is closed, increment for new issue
+              # If last issue is open, keep same version for update
+              if [[ "$last_issue_state" == "closed" ]]; then
+                next_version=$(( version + 1 ))
+                echo "Last issue was closed, creating new issue with version $next_version"
+                echo "version=$next_version" >> $GITHUB_OUTPUT
+                echo "issue-number=" >> $GITHUB_OUTPUT
+              else
+                echo "Last issue is still open, will update with same version $version"
+                echo "version=$version" >> $GITHUB_OUTPUT
+                echo "issue-number=$last_issue_number" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "Could not parse version from title, starting at 1"
+              echo "version=1" >> $GITHUB_OUTPUT
+              echo "issue-number=" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No previous issues found for ${{ matrix.source }}, starting at version 1"
+            echo "version=1" >> $GITHUB_OUTPUT
+            echo "issue-number=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if issue needs creation or update
+        id: check-create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          
+          issue_number="${{ steps.get-version.outputs.issue-number }}"
+          
+          if [[ "$issue_number" == "" ]]; then
+            echo "Need to create new issue"
+            echo "create=true" >> $GITHUB_OUTPUT
+            echo "issue-number=" >> $GITHUB_OUTPUT
+          else
+            echo "Found existing open issue #$issue_number for ${{ matrix.source }}"
+            # Check if body has changed
+            issue_url="https://api.github.com/repos/${{ github.repository }}/issues/$issue_number"
+            gh api -H "Accept: application/vnd.github+json" $issue_url | jq -r '.body' > existing_body.md
+            
+            if diff violations/${{ matrix.source }}.md existing_body.md > /dev/null 2>&1; then
+              echo "Issue body unchanged, skipping update"
+              echo "create=false" >> $GITHUB_OUTPUT
+            else
+              echo "Issue body changed, will update"
+              echo "create=true" >> $GITHUB_OUTPUT
+              echo "issue-number=$issue_number" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Create or update issue
+        if: steps.check-create.outputs.create == 'true'
+        uses: peter-evans/create-issue-from-file@v5.0.0
+        with:
+          title: "[Status Alert] ${{ matrix.source }} - ${{ steps.get-version.outputs.version }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ steps.check-create.outputs.issue-number }}
+          content-filepath: violations/${{ matrix.source }}.md
+          labels: |
+            source-status
+            ${{ matrix.source }}
