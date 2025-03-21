@@ -1,3 +1,124 @@
+# This is a temporary fork with the following archival jobs running out of it
+
+## Gazettes
+
+### Live jobs
+[![Arunachal Pradesh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/arunachal.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/arunachal.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Farunachal.json)
+
+[![Assam Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/assam.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/assam.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fassam.json)
+
+[![Chandigarh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/chandigarh.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/chandigarh.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fchandigarh.json)
+
+[![DNH and DD Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/dadranagarhaveli.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/dadranagarhaveli.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fdadranagarhaveli.json)
+
+[![Gujarat Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/gujarat.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/gujarat.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fgujarat.json)
+
+[![Himachal Pradesh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/himachal.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/himachal.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fhimachal.json)
+
+[![Jammu and Kashmir Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/jammuandkashmir.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/jammuandkashmir.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fjammuandkashmir.json)
+
+[![Ladakh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/ladakh.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/ladakh.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fladakh.json)
+
+[![Lakshadweep Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/lakshadweep.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/lakshadweep.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Flakshadweep.json)
+
+[![Manipur Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/manipur.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/manipur.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fmanipur.json)
+
+[![Meghalaya Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/meghalaya.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/meghalaya.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fmeghalaya.json)
+
+[![Mizoram Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/mizoram.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/mizoram.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fmizoram.json)
+
+[![Nagaland Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/nagaland.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/nagaland.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fnagaland.json)
+
+[![Odisha Egazette Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/odisha_egaz.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/odisha_egaz.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fodisha_egaz.json)
+
+[![Odisha Government Press Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/odisha_govpress.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/odisha_govpress.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fodisha_govpress.json)
+
+[![Puducherry Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/puducherry.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/puducherry.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fpuducherry.json)
+
+[![Rajasthan Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/rajasthan.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/rajasthan.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Frajasthan.json)
+
+[![Sikkim Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/sikkim.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/sikkim.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fsikkim.json)
+
+[![Tripura Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/tripura.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/tripura.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Ftripura.json)
+
+[![Uttar Pradesh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/uttarpradesh.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/uttarpradesh.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Futtarpradesh.json)
+
+### Status of remaining archivers
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fandhra.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fcentral_weekly.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fcentral_extraordinary.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fdelhi_weekly.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fdelhi_extraordinary.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fbihar.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fcgweekly.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fcgextraordinary.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fgoa.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fharyana.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fjharkhand.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fkarnataka.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fkeralacompose.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fmadhyapradesh.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fmaharashtra.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Fpunjabdsa.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Ftamilnadu.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Ftelangana.json)
+
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Futtarakhand.json)
+
+
+
+
+## Government Orders
+
+### Live jobs
+
+[![Telangana Government Order Issue Registry archiver](https://github.com/ramSeraph/egazette/actions/workflows/telangana_goir.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/telangana_goir.yml)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Framseraph.github.io%2Fegazette%2Ftelangana_goir.json)
+
+### Backfill jobs
+
+[![Andhra Pradesh Government Order Issue Registry archiver](https://github.com/ramSeraph/egazette/actions/workflows/andhra_goir.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/andhra_goir.yml)
+
+The code itself is in the [workspace](https://github.com/ramSeraph/egazette/tree/workspace) branch.
+
 # egazette
 
 This program will download gazettes from various egazette sites
