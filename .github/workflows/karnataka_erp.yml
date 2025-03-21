@@ -1,0 +1,30 @@
+name: Karnataka Gazette archiver
+
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+jobs:
+  Run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: 'workspace'
+
+      - name: Pull and Push call
+        id: local-action
+        uses: ./.github/actions/common/
+        with:
+          branch: 'workspace'
+          source: 'karnataka_erp'
+          last_n_days: 180
+          ia_access_key: ${{ secrets.IA_ACCESS_KEY }}
+          ia_secret_key: ${{ secrets.IA_SECRET_KEY }}
+          proxy_ip_address: '${{ secrets.PROXY_IP_ADDRESS }}'
+          proxy_basic_auth: '${{ secrets.PROXY_AUTH }}'
