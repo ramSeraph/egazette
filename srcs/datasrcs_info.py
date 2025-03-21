@@ -1,6 +1,8 @@
 import re
 from datetime import datetime
 
+TEST_PREFIX = 'egaztest.'
+
 def basic_identifier(relurl, metainfo):
     identifier = relurl.replace('/', '.')
     return identifier
@@ -254,7 +256,7 @@ def get_prefix(srcname, to_sandbox=False):
     srcinfo = srcinfos[srcname]
     prefix = srcinfo.get('prefix', f'in.gazette.{srcname}.')
     if to_sandbox:
-        prefix = 'egaztest.' + prefix
+        prefix = TEST_PREFIX + prefix
     return prefix
 
 def get_start_date(srcname):

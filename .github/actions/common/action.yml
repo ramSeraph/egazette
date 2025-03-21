@@ -1,0 +1,135 @@
+name: Common Pull and Push
+inputs:
+    source:
+      description: 'source name'
+      required: true
+      type: string
+    tesseract_needed:
+      description: 'tesseract needed for captchas'
+      required: false
+      type: boolean
+      default: false
+    testing:
+      description: 'run in test mode'
+      required: false
+      type: boolean
+      default: false
+    from_date:
+      description: 'from date'
+      required: false
+      type: string
+      default: ''
+    to_date:
+      description: 'to date defaults to current date'
+      required: false
+      type: string
+      default: ''
+    last_n_days:
+      description: 'pull last n days from to date'
+      required: false
+      type: string
+      default: ''
+    branch:
+      description: 'which branch to run on'
+      required: false
+      type: string
+      default: 'master'
+    ia_access_key:
+      description: 'internet archive access key'
+      type: string
+      required: true
+    ia_secret_key:
+      description: 'internet archive secret key'
+      type: string
+      required: true
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get current date
+      shell: bash
+      run: echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+      id: date
+
+    - uses: actions/checkout@v4.1.7
+      with:
+        ref: ${{ inputs.branch }}
+
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        version: ">=0.5.29"
+
+    - name: Install packages
+      if: inputs.tesseract_needed
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr
+
+    - name: Restore daily run data from cache
+      uses: ramSeraph/cache-always@v0.0.1
+      with:
+        path: |
+          data/
+        key:  egazette-data-v0-${{ inputs.testing }}-${{ inputs.source }}-${{ steps.date.outputs.date }}-${{ github.run_number }}-${{ github.run_attempt }}
+        restore-keys: |
+          egazette-data-v0-${{ inputs.testing }}-${{ inputs.source }}-${{ steps.date.outputs.date }}-${{ github.run_number }}-
+          egazette-data-v0-${{ inputs.testing }}-${{ inputs.source }}-${{ steps.date.outputs.date }}-
+
+
+    - name: Pull data
+      shell: bash
+      run: |
+        testing=${{ inputs.testing }}
+        src_name=${{ inputs.source }}
+        from_date=${{ inputs.from_date }}
+        to_date=${{ inputs.to_date }}
+        last_n_days=${{ inputs.last_n_days }}
+
+        if [[ $to_date == '' ]]; then
+          to_date=${{ steps.date.outputs.date }}
+        fi
+
+        if [[ $last_n_days != '' ]]; then
+          from_date=$(uv run python -c "from datetime import datetime, timedelta; d=datetime.strptime('$to_date', '%d-%m-%Y'); d=d-timedelta(days=$last_n_days); print(d.strftime('%d-%m-%Y'))")
+        fi
+
+        mkdir -p data
+
+        if [[ $testing == 'true' ]]; then
+          export TESTING=1
+        fi
+
+        extra_args=''
+        if [[ $from_date == '' ]]; then
+          scripts/get_fromdate.sh $src_name from_date.txt
+          from_date=$(cat from_date.txt)
+        else
+          scripts/get_donelist.sh $src_name $from_date $to_date donelist.txt
+          extra_args=' -L donelist.txt'
+        fi
+
+        export PYTHONPATH=$PYTHONPATH:..
+        uv run --with-requirements requirements/sync.in sync.py -t $from_date -T $to_date -s $src_name -D data/ $extra_args
+      id: pull
+
+    - name: Push data
+      shell: bash
+      run: |
+        export PYTHONPATH=$PYTHONPATH:..
+        testing=${{ inputs.testing }}
+        extra_args=''
+        if [[ $testing == 'true' ]]; then
+          extra_args=' -S'
+        fi
+        uv run --with-requirements requirements/iasync.in iasync.py -u -D data/ -a ${{ inputs.ia_access_key }} -k ${{ inputs.ia_secret_key }} -f '' $extra_args
+      id: push
+
+    - name: Cleanup
+      shell: bash
+      run: |
+        rm -rf data/* || true
