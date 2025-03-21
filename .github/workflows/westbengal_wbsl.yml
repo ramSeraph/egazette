@@ -1,0 +1,31 @@
+name: West Bengal WBSL Data Sync
+
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: '0 */5 * * *'
+  workflow_dispatch:
+
+jobs:
+  Run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: 'workspace'
+
+      - name: Pull and Push call
+        id: local-action
+        uses: ./.github/actions/common-long/
+        with:
+          branch: 'workspace'
+          source: 'westbengal_wbsl'
+          from_date: '01-01-1834'
+          period_split_days: 365
+          run_time_mins: 240
+          ia_access_key: ${{ secrets.IA_ACCESS_KEY }}
+          ia_secret_key: ${{ secrets.IA_SECRET_KEY }}
+

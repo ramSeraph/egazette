@@ -1,0 +1,36 @@
+name: Telangana Government Order Issue Registry archiver
+
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  Run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: 'workspace'
+
+      - name: Pull and Push call
+        id: local-action
+        uses: ./.github/actions/common/
+        with:
+          branch: 'workspace'
+          source: 'telangana_goir'
+          last_n_days: 180
+          run_time_mins: 30
+          ia_access_key: ${{ secrets.IA_ACCESS_KEY }}
+          ia_secret_key: ${{ secrets.IA_SECRET_KEY }}
+          proxy_needed: true
+          proxy_type: 'GCP'
+          gcp_credentials: ${{ secrets.GCP_AUTH }}
+          gcp_project: ${{ secrets.GCP_PROJECT }}
+          gcp_zone: asia-south1-a
+          proxy_basic_auth: ${{ secrets.PROXY_AUTH }}
+
