@@ -1,3 +1,49 @@
+# This is a temporary fork with the following archival jobs running out of it
+
+## Gazettes
+
+[![Chandigarh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/chandigarh.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/chandigarh.yml)
+
+[![DNH and DD Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/dadranagarhaveli.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/dadranagarhaveli.yml)
+
+[![Himachal Pradesh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/himachal.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/himachal.yml)
+
+[![Jammu and Kashmir Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/jammuandkashmir.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/jammuandkashmir.yml)
+
+[![Ladakh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/ladakh.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/ladakh.yml)
+
+[![Lakshadweep Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/lakshadweep.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/lakshadweep.yml)
+
+[![Manipur Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/manipur.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/manipur.yml)
+
+[![Meghalaya Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/meghalaya.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/meghalaya.yml)
+
+[![Mizoram Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/mizoram.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/mizoram.yml)
+
+[![Nagaland Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/nagaland.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/nagaland.yml)
+
+[![Puducherry Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/puducherry.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/puducherry.yml)
+
+[![Sikkim Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/sikkim.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/sikkim.yml)
+
+[![Uttar Pradesh Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/uttarpradesh.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/uttarpradesh.yml)
+
+### Backfills
+
+[![Himachal Pradesh Gazette Archive archiver(backfill)](https://github.com/ramSeraph/egazette/actions/workflows/himachalarchive.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/himachalarchive.yml)
+
+[![Gujarat Gazette archiver](https://github.com/ramSeraph/egazette/actions/workflows/gujarat.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/gujarat.yml)
+
+
+
+## Government Orders
+
+[![Telangana Government Order Issue Registry archiver](https://github.com/ramSeraph/egazette/actions/workflows/telangana_goir.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/telangana_goir.yml)
+
+[![Andhra Pradesh Government Order Issue Registry archiver](https://github.com/ramSeraph/egazette/actions/workflows/andhra_goir.yml/badge.svg)](https://github.com/ramSeraph/egazette/actions/workflows/andhra_goir.yml)
+
+The code itself is in the [workspace](https://github.com/ramSeraph/egazette/tree/workspace) branch.
+
 # egazette
 
 This program will download gazettes from various egazette sites
