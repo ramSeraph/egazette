@@ -47,7 +47,7 @@ def setup_logging_if_needed():
     platform = sys.platform
     if platform != 'darwin':
         return
-    optlist, remlist = getopt.getopt(sys.argv[1:], 'ad:D:l:mnf:p:t:T:hrs:W:')
+    optlist, remlist = getopt.getopt(sys.argv[1:], 'ad:D:l:mnf:p:t:T:hrs:W:L:')
     datadir    = None
     debuglevel = 'info'
     filename = None
