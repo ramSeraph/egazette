@@ -43,6 +43,7 @@ srcdict = { \
 'karnataka'            : karnataka.Karnataka, \
 'maharashtra'          : maharashtra.Maharashtra, \
 'telangana'            : telangana.Telangana, \
+'telangana_goir'       : telangana.TelanganaGOIR, \
 'tamilnadu'            : tamilnadu.TamilNadu, \
 'odisha'               : odisha.Odisha, \
 'jharkhand'            : jharkhand.Jharkhand, \
