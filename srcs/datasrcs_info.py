@@ -128,6 +128,15 @@ srcinfos = {
         'category'  : 'Telangana Gazette',
         'start_date': datetime(2014, 1, 1)
     },
+    'telangana_goir' : {
+        'languages' : ['eng', 'tel'],
+        'source'    : 'Government of Telangana',
+        'category'  : 'Telangana Government Order',
+        'start_date': datetime(2014, 6, 2),
+        'prefix'    : 'in.gov.telangana.goir.',
+        'collection': 'telangana-goir',
+        'type'      : 'goir'
+    },
     # 'in.gazette.tamilnadu.<year>-<month>-<day>.<id>' start_date: 2008-12-01 end_date: 2025-03-05 count: 13529
     'tamilnadu' : {
         'languages' : ['eng', 'tam'],
