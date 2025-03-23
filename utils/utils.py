@@ -15,6 +15,17 @@ from xml.dom import minidom, Node
 from bs4 import BeautifulSoup, NavigableString, Tag
 from functools import reduce
 
+from . import proxylist
+
+def get_proxydict(hostname):
+    if hostname in proxylist.hostdict:
+        return proxylist.hostdict[hostname]
+
+    if '*' in proxylist.hostdict:
+        return proxylist.hostdict['*']
+    
+    return None
+
 def parse_xml(xmlpage):
     try: 
         d = minidom.parseString(xmlpage)
