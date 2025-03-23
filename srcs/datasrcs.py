@@ -40,6 +40,7 @@ srcdict = { \
 'cgextraordinary'      : chattisgarh.ChattisgarhExtraordinary, \
 'andhra'               : andhra.Andhra, \
 'andhraarchive'        : andhra.AndhraArchive, \
+'andhra_goir'          : andhra.AndhraGOIR, \
 'karnataka'            : karnataka.Karnataka, \
 'maharashtra'          : maharashtra.Maharashtra, \
 'telangana'            : telangana.Telangana, \
