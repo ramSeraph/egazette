@@ -4,11 +4,12 @@ import time
 import logging
 import re
 
-from . import proxylist
+from . import utils
 
 def sync(hostname, gazetteobjs, fromdate, todate, event):
-    if hostname in proxylist.hostdict:
-        proxy = urllib.request.ProxyHandler(proxylist.hostdict[hostname])
+    proxydict = utils.get_proxydict(hostname)
+    if proxydict is not None:
+        proxy = urllib.request.ProxyHandler(proxydict)
         opener = urllib.request.build_opener(proxy)
         urllib.request.install_opener(opener)
 
