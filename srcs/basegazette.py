@@ -108,7 +108,12 @@ class Downloader:
             headers['Referer'] = referer
 
         fixed_url = self.url_fix(url)        
-        req_kwargs = { 'timeout': self.request_timeout_secs }
+        req_kwargs = {}
+        req_kwargs['timeout'] = self.request_timeout_secs
+
+        proxydict = utils.get_proxydict(self.hostname)
+        if proxydict is not None:
+            req_kwargs['proxies'] = proxydict
 
         try:
             if postdata == None:
