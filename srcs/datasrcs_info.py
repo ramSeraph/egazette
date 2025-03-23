@@ -104,6 +104,15 @@ srcinfos = {
         'category'  : 'Andhra Pradesh Gazette',
         'enabled'   : False
     },
+    'andhra_goir' : {
+        'languages' : ['eng', 'tel'],
+        'source'    : 'Government of Andhra Pradesh',
+        'category'  : 'Andhra Pradesh Government Order',
+        'start_date': datetime(2008, 6, 1),
+        'prefix'    : 'in.gov.andhra.goir.',
+        'collection': 'andhra-goir',
+        'type'      : 'goir'
+    },
     # 'in.gov.karn.gaz.<year>.<month>.<date>' start_date: 2003-09-04 end_date: 2017-09-21 count: 684
     # 'in.gazette.karnataka.<year>-<month>-<day>' start_date: 2009-06-11 end_date: 2018-11-01 count: 463
     # 'in.gazette.karnataka_new.<year>-<month>-<day>.<id>' start_date; 2009-06-11 end_date: 2019-12-26 count: 8783
