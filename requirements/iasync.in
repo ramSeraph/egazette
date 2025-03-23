@@ -1,0 +1,7 @@
+-r gvision.in
+PyPDF2
+python-magic
+postmarker
+internetarchive
+requests
+beautifulsoup4
