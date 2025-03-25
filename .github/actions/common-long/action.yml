@@ -1,0 +1,192 @@
+name: Common Long Pull and Push
+
+inputs:
+  source:
+    description: 'source name'
+    required: true
+    type: string
+  tesseract_needed:
+    description: 'tesseract needed for captchas'
+    required: false
+    type: boolean
+    default: false
+  testing:
+    description: 'run in test mode'
+    required: false
+    type: boolean
+    default: false
+  from_date:
+    description: 'from date'
+    required: false
+    type: string
+    default: ''
+  to_date:
+    description: 'to date defaults to current date'
+    required: false
+    type: string
+    default: ''
+  last_n_days:
+    description: 'pull last n days from to date'
+    required: false
+    type: string
+    default: ''
+  run_time_mins:
+    description: 'how long we run in mins'
+    required: false
+    type: string
+    default: ''
+  branch:
+    description: 'which branch to run on'
+    required: false
+    type: string
+    default: 'master'
+  ia_access_key:
+    description: 'internet archive access key'
+    type: string
+    required: true
+  ia_secret_key:
+    description: 'internet archive secret key'
+    type: string
+    required: true
+  proxy_needed:
+    description: 'requires a proxy'
+    required: false
+    type: boolean
+    default: false
+  gcp_project:
+    description: 'gcp project to run the proxy in'
+    required: false
+    type: string
+    default: ''
+  gcp_auth:
+    description: 'gcp auth string to run the proxy in'
+    required: false
+    type: string
+    default: ''
+
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get current date
+      shell: bash
+      run: echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+      id: date
+
+    - uses: actions/checkout@v4.1.7
+      with:
+        ref: ${{ inputs.branch }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        cache-dependency-glob: |
+          requirements/iasync.txt
+          requirements/sync.txt
+
+    - name: Install packages
+      if: inputs.tesseract_needed == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr
+
+    - name: Restore daily run data from cache
+      uses: ramSeraph/cache-always@v0.0.1
+      with:
+        path: |
+          data/
+        key:  egazette-data-v0-long-${{ inputs.testing }}-${{ inputs.source }}-${{ github.run_number }}-${{ github.run_attempt }}
+        restore-keys: |
+          egazette-data-v0-long-${{ inputs.testing }}-${{ inputs.source }}-${{ github.run_number }}-
+          egazette-data-v0-long-${{ inputs.testing }}-${{ inputs.source }}-
+
+    - name: Bring up the proxy
+      if: inputs.proxy_needed == 'true'
+      shell: bash
+      run: |
+        gcloud auth activate-service-account --key-file=<(echo ${{ inputs.gcp_auth }} | base64 -d)
+        gcp_project=${{ inputs.gcp_project }}
+        .github/infra/create.sh $gcp_project
+        ip="$(cat ip_address.txt)"
+        echo "hostdict = { '*': {'https': 'http://${ip}:80', 'http': 'http://${ip}:80'} }" > utils/proxylist.py
+
+    - name: Pull and push data
+      shell: bash
+      run: |
+        testing=${{ inputs.testing }}
+        src_name=${{ inputs.source }}
+        from_date=${{ inputs.from_date }}
+        to_date=${{ inputs.to_date }}
+        last_n_days=${{ inputs.last_n_days }}
+
+        if [[ $to_date == '' ]]; then
+          to_date=${{ steps.date.outputs.date }}
+        fi
+
+        if [[ $last_n_days != '' ]]; then
+          from_date=$(uv run python -c "from datetime import datetime, timedelta; d=datetime.strptime('$to_date', '%d-%m-%Y'); d=d-timedelta(days=$last_n_days); print(d.strftime('%d-%m-%Y'))")
+        fi
+
+        run_time_mins=${{ inputs.run_time_mins }}
+        do_check=0
+        if [[ $run_time_mins != '' ]]; then
+          do_check=1
+          run_time_secs=$(( run_time_mins * 60 ))
+          start_time_secs=$(date +%s)
+        fi
+        mkdir -p data
+
+        if [[ $testing == 'true' ]]; then
+          export TESTING=1
+        fi
+
+        extra_sync_args=''
+        if [[ $from_date == '' ]]; then
+          scripts/get_fromdate.sh $src_name from_date.txt
+          from_date=$(cat from_date.txt)
+        else
+          scripts/get_donelist.sh $src_name $from_date $to_date donelist.txt
+          extra_sync_args=' -L donelist.txt'
+        fi
+
+        uv run scripts/get_date_range.py $from_date $to_date dates.txt
+
+        export PYTHONPATH=$PYTHONPATH:..
+        while read run_date
+        do
+          if [[ $do_check == 1 ]]; then
+            curr_time_secs=$(date +%s)
+            elapsed_time=$(( curr_time_secs - start_time_secs ))
+            if [[ $elapsed_time -ge $run_time_secs ]]; then
+              echo "Allotted time of ${run_time_mins} mins has elapsed.. stopping run"
+              break
+            fi
+          fi
+          echo "===== running for date ${run_date} ====="
+          uv run --with-requirements requirements/sync.in sync.py -t $run_date -T $run_date -s $src_name -D data/ $extra_sync_args
+          extra_args=''
+          if [[ $testing == 'true' ]]; then
+            extra_args=' -S'
+          fi
+          uv run --with-requirements requirements/iasync.in iasync.py -u -D data/ -s $src_name -a ${{ inputs.ia_access_key }} -k ${{ inputs.ia_secret_key }} -f '' $extra_args
+          rm -rf data/raw/*
+          rm -rf data/metatags/*
+        done < dates.txt
+
+      id: pull-and-push
+
+    - name: Bring down the proxy
+      shell: bash
+      if: ${{ always() }}
+      run: |
+        if [[ -e info.sh ]]; then
+          .github/infra/destroy.sh 
+        fi
+
+    - name: Cleanup
+      shell: bash
+      run: |
+        rm -rf data/* || true
