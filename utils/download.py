@@ -82,5 +82,3 @@ def parallel_download(gazetteobjs, agghosts, fromdate, todate, max_wait, all_dls
             if t.is_alive():
                 t.join()
 
-  
-

@@ -10,6 +10,7 @@ from egazette.utils import utils
 from egazette.utils import download
 from egazette.utils.file_storage import FileManager
 from egazette.srcs import datasrcs
+from egazette.srcs import datasrcs_info
 
 def print_usage(progname):
     print('''Usage: %s [-l loglevel(critical, error, warn, info, debug)]
@@ -21,6 +22,8 @@ def print_usage(progname):
                        [-t fromdate (DD-MM-YYYY)] [-T todate (DD-MM-YYYY)]
                        [-d last_n_days]
                        [-D datadir]
+                       [-W max_wait_time_in_secs]
+                       [-L file_with_known_relurls]
                        [-s central_weekly -s central_extraordinary -s central
                         -s states 
                         -s andhra -s andhraarchive 
@@ -52,13 +55,35 @@ def to_datetime(datestr):
             datelist.append(int(num))
         return datetime.datetime(datelist[2], datelist[1], datelist[0])
 
-def execute(storage, srclist, agghosts, fromdate, todate, max_wait, all_dls):
+def read_donefile(fname):
+    identifiers = set()
+
+    with open(fname, 'r') as f:
+        for line in f:
+            identifiers.add(line.strip()) 
+
+    return identifiers
+
+class DoneChecker:
+    def __init__(self, doneset):
+        self.doneset = doneset
+
+    def is_done(self, relurl, metainfo):
+        if len(self.doneset) == 0:
+            return False
+
+        identifier = datasrcs_info.get_identifier(relurl, metainfo, False)
+        return identifier in self.doneset
+
+def execute(storage, srclist, agghosts, fromdate, todate, max_wait, all_dls, doneset):
     if fromdate == None and todate != None:
         fromdate = todate
     elif fromdate != None and todate == None:
         todate = datetime.datetime.today()
 
-    srcobjs = datasrcs.get_srcobjs(srclist,  storage)
+    srcobjs = datasrcs.get_srcobjs(srclist, storage)
+    for srcobj in srcobjs:
+        srcobj.set_done_checker(DoneChecker(doneset))
 
     download.parallel_download(srcobjs, agghosts, fromdate, todate, max_wait, all_dls)
 
@@ -80,8 +105,9 @@ if __name__ == '__main__':
     all_dls    = False
     max_wait   = None
     agghosts   = True
+    doneset    = set()
 
-    optlist, remlist = getopt.getopt(sys.argv[1:], 'ad:D:l:mnf:p:t:T:hrs:W:')
+    optlist, remlist = getopt.getopt(sys.argv[1:], 'ad:D:l:mnf:p:t:T:hrs:W:L:')
     for o, v in optlist:
         if o == '-a':
             all_dls = True
@@ -109,6 +135,8 @@ if __name__ == '__main__':
             srclist.append(v)
         elif o == '-W':
             max_wait = int(v)
+        elif o == '-L':
+            doneset = read_donefile(v)
         else:
             print('Unknown option %s' % o, file=sys.stderr)
             print_usage(progname)
@@ -154,5 +182,5 @@ if __name__ == '__main__':
         multiprocessing.set_start_method('fork')
 
     storage = FileManager(datadir, updateMeta, updateRaw)
-    execute(storage, srclist, agghosts, fromdate, todate, max_wait, all_dls)
+    execute(storage, srclist, agghosts, fromdate, todate, max_wait, all_dls, doneset)
 

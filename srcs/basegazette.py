@@ -227,6 +227,16 @@ class BaseGazette(Downloader):
         Downloader.__init__(self, name, storage_manager)
         self.hostname    = None
         self.parser      = 'lxml'
+        self.donechecker = None
+
+    def set_done_checker(self, donechecker):
+        self.donechecker = donechecker
+
+    def is_known_to_be_done(self, relurl, metainfo):
+        if self.donechecker is None:
+            return False
+        
+        return self.donechecker.is_done(relurl, metainfo)
 
     def is_valid_gazette(self, doc, min_size):
         return (min_size <= 0 or len(doc) > min_size)
@@ -239,6 +249,12 @@ class BaseGazette(Downloader):
                      referer = None, cookiefile = None, validurl = True, \
                      min_size=0, count=0, hdrs = {}, encodepost = True):
         updated = False
+
+        # using a check supplied externally
+        if self.is_known_to_be_done(relurl, metainfo):
+            self.logger.info('Item already done %s' % relurl)
+            return updated
+
         if self.storage_manager.should_download_raw(relurl, gurl, \
                                                     validurl = validurl):
             if cookiefile:
