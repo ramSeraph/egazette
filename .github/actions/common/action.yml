@@ -1,0 +1,259 @@
+name: Common Pull and Push
+inputs:
+    source:
+      description: 'source name'
+      required: true
+      type: string
+    tesseract_needed:
+      description: 'tesseract needed for captchas'
+      required: false
+      type: boolean
+      default: false
+    testing:
+      description: 'run in test mode'
+      required: false
+      type: boolean
+      default: false
+    from_date:
+      description: 'from date'
+      required: false
+      type: string
+      default: ''
+    to_date:
+      description: 'to date defaults to current date'
+      required: false
+      type: string
+      default: ''
+    last_n_days:
+      description: 'pull last n days from to date'
+      required: false
+      type: string
+      default: ''
+    run_time_mins:
+      description: 'how long we run in mins'
+      required: false
+      type: string
+      default: '300'
+    branch:
+      description: 'which branch to run on'
+      required: false
+      type: string
+      default: 'master'
+    ia_access_key:
+      description: 'internet archive access key'
+      type: string
+      required: true
+    ia_secret_key:
+      description: 'internet archive secret key'
+      type: string
+      required: true
+    proxy_needed:
+      description: 'requires a proxy'
+      required: false
+      type: boolean
+      default: false
+    proxy_type:
+      description: 'proxy type to use.. one of OCI or GCP'
+      required: false
+      type: string
+      default: 'OCI'
+    proxy_ip_address:
+      description: 'ip address of the proxy'
+      required: false
+      type: string
+      default: ''
+    proxy_basic_auth:
+      description: 'basic auth to use for the proxy'
+      required: false
+      type: string
+      default: ''
+    oci_compartment_name:
+      description: 'OCI compartment name to use for the proxy'
+      required: false
+      type: string
+      default: ''
+    gcp_credentials:
+      description: 'GCP auth credentials'
+      required: false
+      type: string
+      default: ''
+    gcp_project:
+      description: 'GCP project'
+      required: false
+      type: string
+      default: ''
+    gcp_zone:
+      description: 'GCP zone'
+      required: false
+      type: string
+      default: ''
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get current date
+      shell: bash
+      run: echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+      id: date
+
+    - uses: actions/checkout@v4.1.7
+      with:
+        ref: ${{ inputs.branch }}
+
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        cache-dependency-glob: |
+          requirements/iasync.txt
+          requirements/sync.txt
+
+    - name: Install packages
+      if: inputs.tesseract_needed == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr
+
+    - name: Restore run data from cache
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          data/
+        key:  egazette-data-v0-${{ inputs.testing }}-${{ inputs.source }}-${{ steps.date.outputs.date }}-${{ github.run_number }}-${{ github.run_attempt }}
+        restore-keys: |
+          egazette-data-v0-${{ inputs.testing }}-${{ inputs.source }}-${{ steps.date.outputs.date }}-${{ github.run_number }}-
+          egazette-data-v0-${{ inputs.testing }}-${{ inputs.source }}-${{ steps.date.outputs.date }}-
+
+
+    - name: Bring up the OCI proxy
+      if: inputs.proxy_needed == 'true' && inputs.proxy_type == 'OCI'
+      id: setup-proxy-oci
+      uses: ramSeraph/oci-simple-proxy-action/start@v0.0.1
+      with:
+        oci-compartment-name: ${{ inputs.oci_compartment_name }}
+        oci-availability-domain: 'wGsJ:AP-MUMBAI-1-AD-1'
+        oci-shape: 'VM.Standard.A1.Flex'
+        oci-shape-ocpus: 1
+        oci-shape-memory: 1
+        simpleproxy-basicauth: '${{ inputs.proxy_basic_auth }}'
+        simpleproxy-port: 8080
+
+    - name: Bring up the GCP proxy
+      if: inputs.proxy_needed == 'true' && inputs.proxy_type == 'GCP'
+      id: setup-proxy-gcp
+      uses: ramSeraph/gcp-simple-proxy-action/start@v0.0.2
+      with:
+        gcp-credentials: ${{ inputs.gcp_credentials }}
+        gcp-project: ${{ inputs.gcp_project }}
+        gcp-zone: ${{ inputs.gcp_zone }}
+        simpleproxy-basicauth: '${{ inputs.proxy_basic_auth }}'
+        simpleproxy-port: 8080
+
+    - name: Pull data
+      shell: bash
+      run: |
+        testing=${{ inputs.testing }}
+        src_name=${{ inputs.source }}
+        from_date=${{ inputs.from_date }}
+        to_date=${{ inputs.to_date }}
+        last_n_days=${{ inputs.last_n_days }}
+
+        if [[ '${{ inputs.proxy_needed }}' == 'true' ]]; then
+          if [[ '${{ inputs.proxy_type }}' == 'OCI' ]]; then
+            ip="${{ steps.setup-proxy-oci.outputs.ip_address }}"
+          else
+            ip="${{ steps.setup-proxy-gcp.outputs.ip_address }}"
+          fi
+        elif [[ '${{ inputs.proxy_ip_address }}' != '' ]]; then
+          ip="${{ inputs.proxy_ip_address }}"
+        fi
+
+        if [[ $ip != '' ]]; then
+          prefix=''
+          if [[ '${{ inputs.proxy_basic_auth }}' != '' ]]; then
+            prefix="${{ inputs.proxy_basic_auth }}@"
+          fi
+
+          proxy_url="http://${prefix}${ip}:8080"
+          
+          echo ${proxy_url}
+
+          echo "hostdict = { '*': {'https': '${proxy_url}', 'http': '${proxy_url}'} }" > utils/proxylist.py
+        fi
+
+        if [[ $to_date == '' ]]; then
+          to_date=${{ steps.date.outputs.date }}
+        fi
+
+        if [[ $last_n_days != '' ]]; then
+          from_date=$(uv run python -c "from datetime import datetime, timedelta; d=datetime.strptime('$to_date', '%d-%m-%Y'); d=d-timedelta(days=$last_n_days); print(d.strftime('%d-%m-%Y'))")
+        fi
+
+        mkdir -p data
+
+        if [[ $testing == 'true' ]]; then
+          export TESTING=1
+        fi
+
+        extra_args=''
+        if [[ $from_date == '' ]]; then
+          scripts/get_fromdate.sh $src_name from_date.txt
+          from_date=$(cat from_date.txt)
+        else
+          scripts/get_donelist.sh $src_name $from_date $to_date donelist.txt
+          extra_args=' -L donelist.txt'
+        fi
+
+        export PYTHONPATH=$PYTHONPATH:..
+
+        run_time_mins=${{ inputs.run_time_mins }}
+        run_time_secs=$(( run_time_mins * 60 ))
+        uv run --with-requirements requirements/sync.in sync.py -t $from_date -T $to_date -s $src_name -D data/ $extra_args -W $run_time_secs
+      id: pull
+
+    - name: Bring down the OCI proxy
+      if: always() && inputs.proxy_needed == 'true' && inputs.proxy_type == 'OCI'
+      uses: ramSeraph/oci-simple-proxy-action/stop@v0.0.1
+      with:
+        oci-name-suffix: ${{ steps.setup-proxy-oci.outputs.name_suffix }}
+        oci-compartment-name: ${{ inputs.oci_compartment_name }}
+
+    - name: Bring down the GCP proxy
+      if: always() && inputs.proxy_needed == 'true' && inputs.proxy_type == 'GCP'
+      uses: ramSeraph/gcp-simple-proxy-action/stop@v0.0.2
+      with:
+        gcp-credentials: ${{ inputs.gcp_credentials }}
+        gcp-zone: ${{ inputs.gcp_zone }}
+        gcp-project: ${{ inputs.gcp_project }}
+        gcp-instance-name: ${{ steps.setup-proxy-gcp.outputs.instance_name }} 
+        gcp-fw-rule-name: ${{ steps.setup-proxy-gcp.outputs.fw_rule_name }}
+
+    - name: Push data
+      shell: bash
+      run: |
+        src_name=${{ inputs.source }}
+        testing=${{ inputs.testing }}
+        extra_args=''
+        if [[ $testing == 'true' ]]; then
+          extra_args=' -S'
+        fi
+        export PYTHONPATH=$PYTHONPATH:..
+        uv run --with-requirements requirements/iasync.in iasync.py -u -D data/ -s $src_name -a ${{ inputs.ia_access_key }} -k ${{ inputs.ia_secret_key }} -f '' $extra_args
+      id: push
+
+    - name: Cleanup
+      shell: bash
+      run: |
+        rm -rf data/* || true
+
+    - name: Save run data to cache
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          data/
+        key:  egazette-data-v0-${{ inputs.testing }}-${{ inputs.source }}-${{ steps.date.outputs.date }}-${{ github.run_number }}-${{ github.run_attempt }}
+

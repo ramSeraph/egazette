@@ -1,0 +1,279 @@
+name: Common Long Pull and Push
+
+inputs:
+  source:
+    description: 'source name'
+    required: true
+    type: string
+  tesseract_needed:
+    description: 'tesseract needed for captchas'
+    required: false
+    type: boolean
+    default: false
+  testing:
+    description: 'run in test mode'
+    required: false
+    type: boolean
+    default: false
+  from_date:
+    description: 'from date'
+    required: false
+    type: string
+    default: ''
+  to_date:
+    description: 'to date defaults to current date'
+    required: false
+    type: string
+    default: ''
+  last_n_days:
+    description: 'pull last n days from to date'
+    required: false
+    type: string
+    default: ''
+  period_split_days:
+    description: 'interval to split the run period by in days'
+    required: false
+    type: string
+    default: '1'
+  run_time_mins:
+    description: 'how long we run in mins'
+    required: false
+    type: string
+    default: ''
+  branch:
+    description: 'which branch to run on'
+    required: false
+    type: string
+    default: 'master'
+  ia_access_key:
+    description: 'internet archive access key'
+    type: string
+    required: true
+  ia_secret_key:
+    description: 'internet archive secret key'
+    type: string
+    required: true
+  proxy_needed:
+    description: 'requires a proxy'
+    required: false
+    type: boolean
+    default: false
+  proxy_ip_address:
+    description: 'ip address of the proxy'
+    required: false
+    type: string
+    default: ''
+  proxy_basic_auth:
+    description: 'basic auth to use for the proxy'
+    required: false
+    type: string
+    default: ''
+  oci_compartment_name:
+    description: 'OCI compartment name to use for the proxy'
+    required: false
+    type: string
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get current date
+      shell: bash
+      run: echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+      id: date
+
+    - uses: actions/checkout@v4.1.7
+      with:
+        ref: ${{ inputs.branch }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        cache-dependency-glob: |
+          requirements/iasync.txt
+          requirements/sync.txt
+
+    - name: Install packages
+      if: inputs.tesseract_needed == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr
+
+    - name: Restore run data from cache
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          data/
+        key:  egazette-data-v0-long-${{ inputs.testing }}-${{ inputs.source }}-${{ github.run_number }}-${{ github.run_attempt }}
+        restore-keys: |
+          egazette-data-v0-long-${{ inputs.testing }}-${{ inputs.source }}-${{ github.run_number }}-
+          egazette-data-v0-long-${{ inputs.testing }}-${{ inputs.source }}-
+
+    - name: Push leftover data
+      shell: bash
+      run: |
+        testing=${{ inputs.testing }}
+        src_name=${{ inputs.source }}
+
+        extra_iasync_args=''
+        if [[ $testing == 'true' ]]; then
+          export TESTING=1
+          extra_iasync_args=' -S'
+        fi
+
+        export PYTHONPATH=$PYTHONPATH:..
+
+        function run_push() {
+          echo "===== pushing to Internet Archive ====="
+          uv run --with-requirements requirements/iasync.in iasync.py -u -D data/ -s $src_name -a ${{ inputs.ia_access_key }} -k ${{ inputs.ia_secret_key }} -f '' $extra_iasync_args
+          rm -rf data/raw/*
+          rm -rf data/metatags/*
+        }
+
+        run_push
+
+
+    - name: Bring up the proxy
+      if: inputs.proxy_needed == 'true'
+      id: setup-proxy
+      uses: ramSeraph/oci-simple-proxy-action/start@v0.0.1
+      with:
+        oci-compartment-name: ${{ inputs.oci_compartment_name }}
+        oci-availability-domain: 'wGsJ:AP-MUMBAI-1-AD-1'
+        oci-shape: 'VM.Standard.A1.Flex'
+        oci-shape-ocpus: 1
+        oci-shape-memory: 1
+        simpleproxy-basicauth: '${{ inputs.proxy_basic_auth }}'
+        simpleproxy-port: 8080
+
+    - name: Pull and push data
+      shell: bash
+      run: |
+        testing=${{ inputs.testing }}
+        src_name=${{ inputs.source }}
+        from_date=${{ inputs.from_date }}
+        to_date=${{ inputs.to_date }}
+        last_n_days=${{ inputs.last_n_days }}
+
+        if [[ '${{ inputs.proxy_needed }}' == 'true' ]]; then
+          ip="${{ steps.setup-proxy.outputs.ip_address }}"
+        elif [[  '${{ inputs.proxy_ip_address }}' != '' ]]; then
+          ip="${{ inputs.proxy_ip_address }}"
+        fi
+
+        if [[ $ip != '' ]]; then
+          prefix=''
+          if [[ '${{ inputs.proxy_basic_auth }}' != '' ]]; then
+            prefix="${{ inputs.proxy_basic_auth }}@"
+          fi
+
+          proxy_url="http://${prefix}${ip}:8080"
+
+          echo ${proxy_url}
+
+          echo "hostdict = { '*': {'https': '${proxy_url}', 'http': '${proxy_url}'} }" > utils/proxylist.py
+        fi
+
+        if [[ $to_date == '' ]]; then
+          to_date=${{ steps.date.outputs.date }}
+        fi
+
+        if [[ $last_n_days != '' ]]; then
+          from_date=$(uv run python -c "from datetime import datetime, timedelta; d=datetime.strptime('$to_date', '%d-%m-%Y'); d=d-timedelta(days=$last_n_days); print(d.strftime('%d-%m-%Y'))")
+        fi
+
+        run_time_mins=${{ inputs.run_time_mins }}
+        do_check=0
+        if [[ $run_time_mins != '' ]]; then
+          do_check=1
+          run_time_secs=$(( run_time_mins * 60 ))
+          start_time_secs=$(date +%s)
+        fi
+        mkdir -p data
+
+        extra_iasync_args=''
+        if [[ $testing == 'true' ]]; then
+          export TESTING=1
+          extra_iasync_args=' -S'
+        fi
+
+        export PYTHONPATH=$PYTHONPATH:..
+
+
+        function run_push() {
+          echo "===== pushing to Internet Archive ====="
+          uv run --with-requirements requirements/iasync.in iasync.py -u -D data/ -s $src_name -a ${{ inputs.ia_access_key }} -k ${{ inputs.ia_secret_key }} -f '' $extra_iasync_args
+          rm -rf data/raw/*
+          rm -rf data/metatags/*
+        }
+
+        extra_sync_args=''
+        if [[ $from_date == '' ]]; then
+          scripts/get_fromdate.sh $src_name from_date.txt
+          from_date=$(cat from_date.txt)
+        else
+          scripts/get_donelist.sh $src_name $from_date $to_date donelist.txt
+          extra_sync_args=' -L donelist.txt'
+        fi
+
+        if [[ $do_check == 1 ]]; then
+          extra_sync_args="$extra_sync_args -W $run_time_secs"
+        fi
+
+
+        function stop_if_needed() {
+          if [[ $do_check == 1 ]]; then
+            curr_time_secs=$(date +%s)
+            elapsed_time=$(( curr_time_secs - start_time_secs ))
+            if [[ $elapsed_time -ge $run_time_secs ]]; then
+              echo "Allotted time of ${run_time_mins} mins has elapsed.. stopping run"
+              exit 0
+            fi
+          fi
+        }
+
+        uv run scripts/get_date_range.py $from_date $to_date dates.txt ${{ inputs.period_split_days }}
+
+        while read date_range
+        do
+          stop_if_needed
+
+          if [[ ${{ inputs.proxy_needed }} == 'true' ]]; then
+            echo "checking proxy status"
+            nc -z $ip 8080 || ( echo "proxy is down.. exiting" && exit 1 )
+          fi
+
+          echo "===== running for date range ${date_range} ====="
+          start_date=${date_range% *}
+          stop_date=${date_range#* }
+          uv run --with-requirements requirements/sync.in sync.py -t $start_date -T $stop_date -s $src_name -D data/ $extra_sync_args 
+
+          run_push
+        done < dates.txt
+
+
+      id: pull-and-push
+
+    - name: Bring down the proxy
+      if: always() && inputs.proxy_needed == 'true'
+      uses: ramSeraph/oci-simple-proxy-action/stop@v0.0.1
+      with:
+        oci-name-suffix: ${{ steps.setup-proxy.outputs.name_suffix }}
+        oci-compartment-name: ${{ inputs.oci_compartment_name }}
+
+    - name: Cleanup
+      shell: bash
+      run: |
+        rm -rf data/* || true
+
+    - name: Save run data to cache
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          data/
+        key:  egazette-data-v0-long-${{ inputs.testing }}-${{ inputs.source }}-${{ github.run_number }}-${{ github.run_attempt }}
+
+
