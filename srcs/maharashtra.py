@@ -1,11 +1,11 @@
 from http.cookiejar import CookieJar
 import re
 import os
-import datetime
 import urllib.parse
 
 from .basegazette import BaseGazette
 from ..utils import utils
+from ..utils.metainfo import MetaInfo
 
 class Maharashtra(BaseGazette):
     def __init__(self, name, storage):
@@ -14,7 +14,6 @@ class Maharashtra(BaseGazette):
         self.hostname     = 'egazzete.mahaonline.gov.in'
         self.search_endp  = 'GazetteSearch.aspx'
         self.result_table = 'CPH_GridView2'
-        self.start_date   = datetime.datetime(2010, 1, 1)
         self.section_input_field_name = 'ctl00$CPH$ddlSection'
 
     def get_post_data(self, tags, dateobj, section_value):
@@ -65,7 +64,7 @@ class Maharashtra(BaseGazette):
         return order
 
     def process_result_row(self, tr, metainfos, dateobj, order):
-        metainfo = utils.MetaInfo()
+        metainfo = MetaInfo()
         metainfo.set_date(dateobj)
 
         i = 0
