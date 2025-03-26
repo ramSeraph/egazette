@@ -1,5 +1,5 @@
 -r gvision.in
-PyPDF2
+pymupdf
 python-magic
 postmarker
 internetarchive
