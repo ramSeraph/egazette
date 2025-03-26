@@ -331,6 +331,12 @@ def get_file_extension(mtype):
         return 'txt'
     elif re.match('image/png', mtype):
         return 'png'
+    elif re.match('application/msword', mtype):
+        return 'doc'
+    elif re.match('text/rtf', mtype):
+        return 'rtf'
+    elif re.match('application/vnd.ms-excel', mtype):
+        return 'xls'
     return 'unkwn'
 
 def setup_logging(loglevel, logfile):
