@@ -5,6 +5,7 @@ import urllib.request, urllib.parse, urllib.error
 import datetime
 
 from ..utils import utils
+from ..utils import ext_ops
 from .basegazette import BaseGazette
 from ..utils.metainfo import MetaInfo
 
@@ -47,7 +48,7 @@ class Karnataka(BaseGazette):
             updated = True
 
 
-        page_type = self.get_file_extension(response.webpage)
+        page_type = ext_ops.get_file_extension(response.webpage)
         if page_type != 'pdf':
             self.logger.warning('Got a non-pdf page and we can\'t handle it for datte %s', dateobj)
             return dls
