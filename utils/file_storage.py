@@ -3,7 +3,7 @@ import logging
 import glob
 import time
 
-from . import utils
+from . import ext_ops
 from . import xml_ops
 
 def mk_dir(dirname):
@@ -73,16 +73,12 @@ class FileManager:
         rawpath  = os.path.join(self.rawdir, relurl)
         return self.updateRaw or not glob.glob('%s.*' % rawpath)
 
-    def get_file_extension(self, doc):
-        mtype = utils.get_buffer_type(doc)
-        return utils.get_file_extension(mtype)
-
     def save_rawdoc(self, court, relurl, encoding, doc):
         self.create_dirs(self.rawdir, relurl)
         rawpath  = os.path.join(self.rawdir, relurl)
 
         if doc and (self.updateRaw or not glob.glob('%s.*' % rawpath)):
-            extension = self.get_file_extension(doc)
+            extension = ext_ops.get_file_extension(doc)
             self.save_binary_file('%s.%s' % (rawpath, extension), doc)
             return True
         return False
