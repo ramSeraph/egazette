@@ -7,4 +7,4 @@ wget https://github.com/jthomperoo/simple-proxy/releases/download/v1.2.0/simple-
 unzip simple-proxy_linux_amd64.zip
 chmod a+x simple-proxy
 
-nohup ./simple-proxy -port 80 -logtostderr -v -2 &
+nohup ./simple-proxy -port 80 -logtostderr -v 2 > log.txt 2>&1 &
