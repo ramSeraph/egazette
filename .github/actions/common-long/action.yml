@@ -112,6 +112,8 @@ runs:
         .github/infra/create.sh $gcp_project
         ip="$(cat ip_address.txt)"
         echo "hostdict = { '*': {'https': 'http://${ip}:80', 'http': 'http://${ip}:80'} }" > utils/proxylist.py
+        echo "ip=${ip}" >> $GITHUB_OUTPUT
+      id: proxy
 
     - name: Pull and push data
       shell: bash
@@ -167,6 +169,12 @@ runs:
           fi
           echo "===== running for date ${run_date} ====="
           uv run --with-requirements requirements/sync.in sync.py -t $run_date -T $run_date -s $src_name -D data/ $extra_sync_args
+
+          if [[ ${{ inputs.proxy_needed }} == 'true' ]]; then
+            echo "checking proxy status"
+            nc -z ${{ steps.proxy.outputs.ip }} 80 || ( echo "proxy is down.. exiting" && exit 1 )
+          fi
+
           extra_args=''
           if [[ $testing == 'true' ]]; then
             extra_args=' -S'
@@ -180,7 +188,7 @@ runs:
 
     - name: Bring down the proxy
       shell: bash
-      if: ${{ always() }}
+      if: ${{ always() && inputs.proxy_needed == 'true' }}
       run: |
         if [[ -e info.sh ]]; then
           .github/infra/destroy.sh 
