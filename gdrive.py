@@ -65,7 +65,7 @@ class GDriveConverter:
 
         mimetype = ext_ops.get_buffer_type(content)
         ext = ext_ops.get_extension(mimetype)
-        if ext not in ['rtf', 'doc']:
+        if ext not in ['rtf', 'doc', 'xls']:
             raise Exception(f'Unexpected file extension: {ext=} {mimetype=}')
 
         fname = get_random_string(7) + '.' + ext
