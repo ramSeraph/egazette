@@ -2,7 +2,7 @@ import re
 import magic
 
 def get_file_type(filepath):
-    mtype = magic.from_file(filepath, mime = True)
+    mtype = magic.from_file(filepath, mime=True)
 
     return mtype
 
@@ -27,6 +27,8 @@ def get_extension(mtype):
         return 'doc'
     elif re.match('text/rtf', mtype):
         return 'rtf'
+    elif re.match('application/vnd.ms-excel', mtype):
+        return 'xls'
     return 'unkwn'
 
 def get_file_extension(doc):
