@@ -28,6 +28,17 @@ def get_converted_name(name):
     ext = Path(name).suffix
     return name[:-len(ext)] + '.pdf'
 
+def get_ext_map(files):
+    ext_map = {}
+    for file in files:
+        ext = Path(file.name).suffix
+        if ext not in ext_map:
+            ext_map[ext] = []
+        ext_map[ext].append(file)
+
+    return ext_map
+
+
 UNKWN = 'unkwn'
 
 class IdentifierFileIterator:
@@ -95,17 +106,6 @@ class BaseProcess:
         ia_file.delete(access_key=self.ia_access_key,
                        secret_key=self.ia_secret_key)
 
-
-def get_ext_map(files):
-    ext_map = {}
-    for file in files:
-        ext = Path(file.name).suffix
-        if ext not in ext_map:
-            ext_map[ext] = []
-        ext_map[ext].append(file)
-
-    return ext_map
-
 class ExtensionChecker(BaseProcess):
     def __init__(self, args):
         BaseProcess.__init__(self, args)
@@ -135,6 +135,37 @@ class ExtensionChecker(BaseProcess):
         
         raise Exception(f'{unexpected}')
 
+class HtmlDeleter(BaseProcess):
+    def __init__(self, args):
+        BaseProcess.__init__(self, args)
+        self.logger = logging.getLogger('htmldeleter')
+
+    def process(self, item):
+        files = item.get_files()
+        originals = []
+        all_names = set()
+        for file in files:
+            all_names.add(file.name)
+            if file.source == 'original' and not \
+               file.name.endswith('.xml') and \
+               file.format not in ['Metadata', 'Item Tile']:
+                originals.append(file)
+
+        ext_map = get_ext_map(originals)
+
+        interested = []
+        for ext, files in ext_map.items():
+            if ext == '.html':
+                interested.extend(files)
+
+        if len(interested) == 0:
+            return False
+
+        for file in files:
+            self.delete(file)
+
+        return True
+        
 
 class ExtensionFixer(BaseProcess):
     def __init__(self, args):
@@ -252,21 +283,13 @@ class DocConvertor(BaseProcess):
         if len(not_expected) == 0:
             return False
 
-        raise Exception('temporary raise')
-
         for ia_file in not_expected:
             orig_file = self.download(ia_file)
 
             pdf_file = self.convert_to_pdf(orig_file)
             self.upload(pdf_file)
             pdf_file.unlink()
-
-            to_del_local = orig_file
-
-            if ia_file.name.endswith(f'.{UNKWN}'):
-                to_del_local = self.fix_ext(orig_file, ia_file)
-
-            to_del_local.unlink()
+            orig_file.unlink()
         
         
         working_dir = self.get_working_dir(item.identifier)
@@ -300,6 +323,8 @@ class Reprocessor:
                 processor = ExtensionFixer(args)
             elif self.process == 'check-extensions':
                 processor = ExtensionChecker(args)
+            elif self.process == 'delete-htmls':
+                processor = HtmlDeleter(args)
             else: # more to be added later
                 self.logger.error(f'Unsupported process: {self.process}')
         except Exception:
@@ -419,7 +444,8 @@ if __name__ == "__main__":
                         help='logging level')    
 
     parser.add_argument('-p', '--process', default='check-extensions',
-                        choices=['convertdocs', 'fix-unkwn-extensions', 'check-extensions'],
+                        choices=['convertdocs', 'fix-unkwn-extensions', 'check-extensions',
+                                 'delete-htmls'],
                         help='process to run')
 
     parser.add_argument('-s', '--source', dest='srcname', action='store',
