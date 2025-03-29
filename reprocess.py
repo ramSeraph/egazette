@@ -383,6 +383,8 @@ class Reprocessor:
             identifier = result.get('identifier', None)
             if identifier in doneset:
                 skipped_count += 1
+                if count >= total_count:
+                    break
                 continue
 
             item = ia.get_item(identifier)
@@ -400,6 +402,11 @@ class Reprocessor:
                 self.logger.error(f'Unable to process item with {identifier=}, ex: {ex}')
                 self.mark_as_error(identifier)
                 error_count += 1
+
+            # iterator breaks weirdly when there is more data than the intial count
+            # so break out voluntarily
+            if count >= total_count:
+                break
 
 
 
