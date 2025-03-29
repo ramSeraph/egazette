@@ -28,6 +28,8 @@ def get_converted_name(name):
     ext = Path(name).suffix
     return name[:-len(ext)] + '.pdf'
 
+UNKWN = 'unkwn'
+
 class IdentifierFileIterator:
     def __init__(self, fname):
         self.file = Path(fname)
@@ -143,9 +145,9 @@ class ExtensionFixer(BaseProcess):
     def fix_ext(self, orig_file, ia_file):
         orig_name = str(orig_file)
         new_ext = ext_ops.get_file_extension(orig_file.read_bytes())
-        if new_ext == 'unknwn':
+        if new_ext == UNKWN:
             raise Exception('couldnt determine file extension')
-        new_name  = orig_name[:-len('unkwn')] + new_ext
+        new_name  = orig_name[:-len(UNKWN)] + new_ext
 
         new_file  = Path(new_name)
         orig_file.rename(new_file)
@@ -167,7 +169,7 @@ class ExtensionFixer(BaseProcess):
 
         not_expected = [ f 
                          for f in originals
-                         if f.name.endswith('.unkwn') ]
+                         if f.name.endswith(f'.{UNKWN}') ]
 
         self.logger.info(f'{not_expected}')
         if len(not_expected) == 0:
@@ -221,7 +223,7 @@ class DocConvertor(BaseProcess):
     def fix_ext(self, orig_file, ia_file):
         new_ext = ext_ops.get_file_extension(orig_file)
         orig_name = str(orig_file)
-        new_name  = orig_name[:-len('unkwn')] + new_ext
+        new_name  = orig_name[:-len(UNKWN)] + new_ext
 
         new_file  = Path(new_name)
         orig_file.rename(new_file)
@@ -261,7 +263,7 @@ class DocConvertor(BaseProcess):
 
             to_del_local = orig_file
 
-            if ia_file.name.endswith('.unkwn'):
+            if ia_file.name.endswith(f'.{UNKWN}'):
                 to_del_local = self.fix_ext(orig_file, ia_file)
 
             to_del_local.unlink()
