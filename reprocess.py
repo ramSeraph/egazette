@@ -126,7 +126,7 @@ class ExtensionChecker(BaseProcess):
 
         unexpected = []
         for ext, files in ext_map.items():
-            if ext not in [ '.pdf', '.doc', '.rtf', '.png' ]:
+            if ext not in [ '.pdf', '.doc', '.rtf', '.png', '.xls' ]:
                 unexpected.extend([f.name for f in files])
 
         unexpected = [ f for f in unexpected if get_converted_name(f) not in all_names ]
