@@ -58,6 +58,7 @@ srcdict = { \
 'andhraarchive'        : andhra.AndhraArchive, \
 'andhra_goir'          : andhra.AndhraGOIR, \
 'karnataka'            : karnataka.Karnataka, \
+'karnataka_erp'        : karnataka.KarnatakaErajyapatra, \
 'maharashtra'          : maharashtra.Maharashtra, \
 'telangana'            : telangana.Telangana, \
 'telangana_goir'       : telangana.TelanganaGOIR, \
