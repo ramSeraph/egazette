@@ -127,7 +127,15 @@ srcinfos = {
         'languages' : ['eng', 'kan'], 
         'source'    : 'Government of Karnataka',
         'category'  : 'Karnataka Gazette',
-        'prefix'    : 'in.gazette.karnataka_new.'
+        'prefix'    : 'in.gazette.karnataka_new.',
+        'enabled'   : False
+    },
+    'karnataka_erp' : { 
+        'languages' : ['eng', 'kan'], 
+        'source'    : 'Government of Karnataka',
+        'category'  : 'Karnataka Gazette',
+        'start_date': datetime(2020, 1, 1),
+        'collection': '',
     },
     # 'in.gazette.maharashtra.<year>-<month>-<day>.<id>' start_date: 2014-01-01 end_date:2023-05-04 count: 17545
     'maharashtra'   : {
