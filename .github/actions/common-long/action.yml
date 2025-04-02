@@ -108,9 +108,9 @@ runs:
       id: setup-proxy
       uses: ramSeraph/gcp-simple-proxy-action/start@v0.0.1
       with:
-        gcp-project: ${{ inputs.gcp-project }}
+        gcp-project: ${{ inputs.gcp_project }}
         gcp-zone: asia-south1-a
-        gcp-credentials: ${{ inputs.gcp-auth }}
+        gcp-credentials: ${{ inputs.gcp_auth }}
 
     - name: Pull and push data
       shell: bash
