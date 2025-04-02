@@ -117,7 +117,7 @@ runs:
         to_date=${{ inputs.to_date }}
         last_n_days=${{ inputs.last_n_days }}
 
-        if [[ ${{ inputs.proxy_needed == 'true' ]]; then
+        if [[ ${{ inputs.proxy_needed }} == 'true' ]]; then
           ip="${{ steps.setup-proxy.outputs.ip_address }}"
           echo "hostdict = { '*': {'https': 'http://${ip}:80', 'http': 'http://${ip}:80'} }" > utils/proxylist.py
         fi
