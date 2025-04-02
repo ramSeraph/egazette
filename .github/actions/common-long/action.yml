@@ -174,7 +174,7 @@ runs:
 
           if [[ ${{ inputs.proxy_needed }} == 'true' ]]; then
             echo "checking proxy status"
-            nc -z ${{ steps.proxy.outputs.ip }} 80 || ( echo "proxy is down.. exiting" && exit 1 )
+            nc -z $ip 80 || ( echo "proxy is down.. exiting" && exit 1 )
           fi
 
           extra_args=''
