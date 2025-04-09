@@ -290,6 +290,13 @@ srcinfos = {
         'category'  : 'Nagaland Gazette',
         'start_date': datetime(2017, 1, 1),
         'collection': 'gazette-of-nagaland'
+    },
+    'lakshadweep' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Lakshadweep Administration',
+        'category'  : 'Lakshadweep Gazette',
+        'start_date': datetime(2016, 1, 1),
+        'collection': ''
     }
 }
 
