@@ -27,6 +27,7 @@ from . import csl
 
 from . import andaman
 from . import nagaland
+from . import lakshadweep
 
 from .datasrcs_info import srcinfos
 
@@ -64,6 +65,7 @@ srcdict = { \
 'csl_extraordinary'    : csl.CSLExtraordinary, \
 'andaman'              : andaman.Andaman, \
 'nagaland'             : nagaland.Nagaland, \
+'lakshadweep'          : lakshadweep.Lakshadweep, \
 }
 
 srchierarchy = {
