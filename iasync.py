@@ -344,6 +344,7 @@ class GazetteIA:
                 if self.ia_modify_metadat(identifier, metadata):
                     break
                 time.sleep(300)    
+            self.logger.info('Updated metadata for %s', identifier)
  
         return True
 
