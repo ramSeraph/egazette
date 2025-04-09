@@ -291,6 +291,13 @@ srcinfos = {
         'start_date': datetime(2017, 1, 1),
         'collection': ''
     },
+    'lakshadweep' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Lakshadweep Administration',
+        'category'  : 'Lakshadweep Gazette',
+        'start_date': datetime(2016, 1, 1),
+        'collection': ''
+    }
 }
 
 def get_prefix(srcname, to_sandbox=False):
