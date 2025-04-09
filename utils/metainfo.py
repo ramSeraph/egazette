@@ -169,11 +169,13 @@ class MetaInfo(dict):
           ('office',           'Office'), \
           ('notification_num', 'Notification Number'), \
           ('registry_num',     'Registry Number'), \
+          ('volume_num',       'Volume Number'), \
           ('partnum',          'Part Number'), \
           ('refnum',           'Reference Number'), \
           ('ref_type',         'Reference Type'), \
           ('linknames',        'Gazette Links'), \
           ('url',              'Gazette Source'), \
+          ('upload_date',      'Upload Date'), \
           ('num',              'Number'), \
           ('gazetteid',        'Gazette ID'), \
         ]
@@ -235,6 +237,10 @@ class MetaInfo(dict):
         gztype = self.get('gztype', None)
         if gztype is not None:
             title.append(gztype)
+
+        volume_num = self.get('volume_num', None)
+        if volume_num is not None:
+            title.append(f'Volume {volume_num}')
 
         partnum = self.get('partnum', None)
         if partnum is not None:
