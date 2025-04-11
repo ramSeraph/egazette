@@ -13,7 +13,10 @@ def extract_links_from_pdf(fileobj):
 def convert_to_image_pdf(file_bytes):
     outdoc = pymupdf.open()
 
-    doc = pymupdf.open(stream = file_bytes, filetype = 'pdf')
+    doc = pymupdf.open(stream=file_bytes, filetype='pdf')
+    if doc.page_count == 0:
+        return None
+    
     for page in doc:
 
         img_bytes = page.get_pixmap(alpha=False, dpi=300)\
@@ -25,7 +28,7 @@ def convert_to_image_pdf(file_bytes):
 
         img.close()
 
-        img_pdf = pymupdf.open(stream = img_pdf_bytes)
+        img_pdf = pymupdf.open(stream=img_pdf_bytes, filetype='pdf')
 
         page = outdoc.new_page(width  = img_rect.width,
                                height = img_rect.height)
@@ -39,9 +42,13 @@ def convert_to_image_pdf_file(inp_file, outp_file):
         file_bytes = f.read()
 
     pdf_bytes = convert_to_image_pdf(file_bytes)
+    if pdf_bytes is None:
+        return False
 
     with open(outp_file, 'wb') as f:
         f.write(pdf_bytes)
+
+    return True
 
 if __name__ == '__main__':
     import sys

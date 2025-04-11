@@ -328,8 +328,9 @@ class GazetteIA:
                         to_upload.append(renamed_pdf_file)
 
                     corrected_pdf_file = self.create_corrected_pdf(rawfile)
-                    to_upload.append(corrected_pdf_file)
-                    to_del.append(corrected_pdf_file)
+                    if corrected_pdf_file is not None:
+                        to_upload.append(corrected_pdf_file)
+                        to_del.append(corrected_pdf_file)
                     continue
 
             except Exception as e:
@@ -353,7 +354,15 @@ class GazetteIA:
     def create_corrected_pdf(self, rawfile):
         name = '%s' %rawfile.split('/')[-1]
         tmpfile = '/tmp/%s' % name
-        pdf_ops.convert_to_image_pdf_file(rawfile, tmpfile)
+        corrected = False
+        try:
+            corrected = pdf_ops.convert_to_image_pdf_file(rawfile, tmpfile)
+        except Exception as ex:
+            self.logger.error('Unable to convert unacceptble pdf file to image pdf file, ex: %s', ex)
+
+        if not corrected:
+            return None
+
         return tmpfile
 
     def get_srcname(self, relurl):
