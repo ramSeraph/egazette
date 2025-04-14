@@ -77,6 +77,26 @@ class MetaInfo(dict):
     def get_gztype(self):
         return self.get_field(GZTYPE)
 
+    def add_desc_recursive(self, k, v, desc):
+        if type(v) in (str,):
+            v = v.strip()
+            if v:
+                desc.append((k.title(), v))
+            return
+
+        if type(v) in (list,):
+            for i,vitem in enumerate(v):
+                self.add_desc_recursive(f'{k.title()}.{i+1}', vitem, desc)
+            return
+
+        if type(v) in (dict,):
+            for kv,vv in v.items():
+                self.add_desc_recursive(f'{k.title()}.{kv.title()}', vv, desc)
+            return
+
+        if v:
+            desc.append((k.title(), v))
+
     def get_ia_goir_description(self, srcinfo):
         desc = []
 
@@ -111,13 +131,7 @@ class MetaInfo(dict):
 
         for k, v in self.items():
             if k not in known_keys:
-                if type(v) in (str,):
-                    v = v.strip()
-                elif isinstance(v, list):
-                    v = f'{v}'
-                if v:
-                    desc.append((k.title(), v))
-
+                self.add_desc_recursive(k, v, desc)
 
         # style copied from orgpedia's MaharashtraGRs
         header = f'<b>{srcinfo["category"]}</b><br><br>'
@@ -215,13 +229,7 @@ class MetaInfo(dict):
 
         for k, v in self.items():
             if k not in known_keys and k not in ignore_keys:
-                if type(v) in (str,):
-                    v = v.strip()
-                elif isinstance(v, list):
-                    v = f'{v}'
-                if v:
-                    desc.append((k.title(), v))
-
+                self.add_desc_recursive(k, v, desc)
 
         desc_html = '<br/>'.join([f'{d[0]}: {d[1]}' for d in desc])
         return f'<p>{desc_html}</p>'
