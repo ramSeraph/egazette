@@ -42,6 +42,7 @@ class Downloader:
         self.retry_delay_base_secs = 100
         self.retry_delay_max_secs = 300
         self.request_timeout_secs = 400
+        self.retriable_status_codes = [503, 504, 403, 429]
 
     
         self.logger      = logging.getLogger('crawler.%s' % self.name)
@@ -83,7 +84,7 @@ class Downloader:
             connect=retries,
             #backoff_max=self.retry_delay_max_secs,
             backoff_factor=self.retry_delay_base_secs,
-            status_forcelist=set([503,504,403]),
+            status_forcelist=set(self.retriable_status_codes),
         )
         return retry
 
@@ -149,7 +150,7 @@ class Downloader:
             if response.error == None:
                 return response
             elif isinstance(response.error, urllib.error.HTTPError) and \
-                    response.error.code not in [503, 504, 403]:
+                    response.error.code not in self.retriable_status_codes:
                 break
 
             i += 1
