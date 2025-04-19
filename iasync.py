@@ -378,7 +378,7 @@ class GazetteIA:
 
         return metainfo.get_ia_metadata(srcinfo, self.to_sandbox)
 
-    def update_meta(self, relurl):
+    def update_meta(self, relurl, update_meta_file):
         metainfo = self.file_storage.get_metainfo(relurl)
         if metainfo == None:
             self.logger.warning('No metainfo, Ignoring upload for %s' % relurl)
@@ -401,6 +401,13 @@ class GazetteIA:
                 if self.ia_modify_metadat(identifier, metadata):
                     break
                 time.sleep(self.reattempt_delay_secs)    
+
+            if update_meta_file:
+                metafile = self.file_storage.get_metafile_path(relurl)
+                upload(identifier, [metafile], \
+                       access_key = self.access_key, \
+                       secret_key = self.secret_key, \
+                       retries=self.num_upload_retries)
             self.logger.info('Updated metadata for %s', identifier)
  
         return True
@@ -420,6 +427,7 @@ def print_usage(progname):
                         [-a access_key] [-k secret_key]
                         [-f logfile]
                         [-m (update_meta)]
+                        [-M (update_meta_file)]
                         [-u (upload_to_ia)]
                         [-r relurl]
                         [-i (relurls_from_stdin)]
@@ -444,14 +452,14 @@ def print_usage(progname):
                         ] 
     ''')                     
 
-def handle_relurl(gazette_ia, relurl, to_upload, to_update, stats):
+def handle_relurl(gazette_ia, relurl, to_upload, to_update, update_meta_file, stats):
     srcname = gazette_ia.get_srcname(relurl)
 
     if to_upload:
         success = gazette_ia.upload(relurl)
         stats.update_upload(srcname, success)
     elif to_update:
-        success = gazette_ia.update_meta(relurl)   
+        success = gazette_ia.update_meta(relurl, update_meta_file)
         stats.update_modify(srcname, success)
 
 if __name__ == '__main__':
@@ -468,6 +476,7 @@ if __name__ == '__main__':
     secret_key = None
     relurls    = []
     from_stdin = False
+    update_meta_file = False
 
     server_token = None
     from_addr    = None
@@ -476,7 +485,7 @@ if __name__ == '__main__':
     iadir      = None
     to_sandbox = False
 
-    optlist, remlist = getopt.getopt(sys.argv[1:], 'a:k:d:D:f:g:hiI:l:s:t:T:mr:uE:p:U:S')
+    optlist, remlist = getopt.getopt(sys.argv[1:], 'a:k:d:D:f:g:hiI:l:s:t:T:mr:uE:p:U:SM')
     for o, v in optlist:
         if o == '-l':
             loglevel = v
@@ -521,6 +530,8 @@ if __name__ == '__main__':
             key_file = v
         elif o == '-S':
             to_sandbox = True
+        elif o == '-M':
+            update_meta_file = True
         elif o == '-h':
             print_usage(progname)
             sys.exit(0)
@@ -599,14 +610,14 @@ if __name__ == '__main__':
 
     if relurls:
         for relurl in relurls:
-            handle_relurl(gazette_ia, relurl, to_upload, to_update, stats)
+            handle_relurl(gazette_ia, relurl, to_upload, to_update, update_meta_file, stats)
     elif from_stdin:
         for line in sys.stdin:
             relurl = line.strip()
-            handle_relurl(gazette_ia, relurl, to_upload, to_update, stats)
+            handle_relurl(gazette_ia, relurl, to_upload, to_update, update_meta_file, stats)
     else:        
         for relurl in storage.find_matching_relurls(srcnames, start_ts, end_ts):
-            handle_relurl(gazette_ia, relurl, to_upload, to_update, stats)
+            handle_relurl(gazette_ia, relurl, to_upload, to_update, update_meta_file, stats)
 
 
     msg = stats.get_message(srcnames)
