@@ -167,6 +167,17 @@ runs:
           extra_iasync_args=' -S'
         fi
 
+        export PYTHONPATH=$PYTHONPATH:..
+
+        function run_push() {
+          echo "===== pushing to Internet Archive ====="
+          uv run --with-requirements requirements/iasync.in iasync.py -u -D data/ -s $src_name -a ${{ inputs.ia_access_key }} -k ${{ inputs.ia_secret_key }} -f '' $extra_iasync_args
+          rm -rf data/raw/*
+          rm -rf data/metatags/*
+        }
+
+        run_push
+
         extra_sync_args=''
         if [[ $from_date == '' ]]; then
           scripts/get_fromdate.sh $src_name from_date.txt
@@ -176,41 +187,23 @@ runs:
           extra_sync_args=' -L donelist.txt'
         fi
 
-        function run_push() {
-          echo "===== pushing to Internet Archive ====="
-          uv run --with-requirements requirements/iasync.in iasync.py -u -D data/ -s $src_name -a ${{ inputs.ia_access_key }} -k ${{ inputs.ia_secret_key }} -f '' $extra_iasync_args
-          rm -rf data/raw/*
-          rm -rf data/metatags/*
-        }
-
-        function time_to_stop() {
+        function stop_if_needed() {
           if [[ $do_check == 1 ]]; then
             curr_time_secs=$(date +%s)
             elapsed_time=$(( curr_time_secs - start_time_secs ))
             if [[ $elapsed_time -ge $run_time_secs ]]; then
               echo "Allotted time of ${run_time_mins} mins has elapsed.. stopping run"
-              true
-            else
-              false
+              exit 0
             fi
-          else
-            false
           fi
         }
 
         uv run scripts/get_date_range.py $from_date $to_date dates.txt ${{ inputs.period_split_days }}
 
-        interrupted=false
-        export PYTHONPATH=$PYTHONPATH:..
         while read date_range
         do
 
-          if time_to_stop; then
-            interrupted=true
-            break
-          fi
-
-          run_push
+          stop_if_needed
 
           if [[ ${{ inputs.proxy_needed }} == 'true' ]]; then
             echo "checking proxy status"
@@ -221,11 +214,10 @@ runs:
           start_date=${date_range% *}
           stop_date=${date_range#* }
           uv run --with-requirements requirements/sync.in sync.py -t $start_date -T $stop_date -s $src_name -D data/ $extra_sync_args
+
+          run_push
         done < dates.txt
 
-        if ! $interrupted; then
-          run_push
-        fi
 
       id: pull-and-push
 
