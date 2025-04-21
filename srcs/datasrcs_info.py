@@ -451,4 +451,7 @@ def get_identifier(relurl, metainfo, to_sandbox):
 
     return prefix + identifier
 
+def get_expected_update_frequency(srcname):
+    srcinfo = srcinfos[srcname]
+    return srcinfo.get('expected_update_frequency', 30)
 

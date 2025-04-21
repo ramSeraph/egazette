@@ -1,0 +1,74 @@
+name: Common Status Monitor
+
+inputs:
+  branch:
+    description: 'which branch to run on'
+    required: false
+    type: string
+    default: 'master'
+
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4.1.7
+      with:
+        ref: ${{ inputs.branch }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    - name: Get status
+      id: status
+      shell: bash
+      run: |
+        
+        days_from_today() {
+        
+          input_date=$(date -d "${1}" +%s)
+            
+          today=$(date +%s)
+            
+          diff_seconds=$((today - input_date))
+            
+          days=$((diff_seconds / 86400))
+
+          echo $days
+        }
+        
+        mkdir status
+        srcnames="$(uv run python -c "from srcs.datasrcs_info import srcinfos; names = [ print(k) for k, v in srcinfos.items() if v.get('enabled', True) ]")"
+        for srcname in $srcnames
+        do
+          prefix=$(uv run python -c "from srcs.datasrcs_info import get_prefix; print(get_prefix('$srcname', to_sandbox=False))")
+          known_update_frequency=$(uv run python -c "from srcs.datasrcs_info import get_expected_update_frequency; print(get_expected_update_frequency('$srcname'))")
+          from_date_ia=$(uvx --from internetarchive ia search $prefix --sort 'date desc' -f date --parameters="page=1&rows=1" | jq -r .date)
+
+          cutoff=$(( known_update_frequency * 2 ))
+        
+          from_date=''
+          days_ago=''
+          if [[ $from_date_ia != '' ]]; then
+                          
+            from_date="$(date -d "$from_date_ia" +%Y-%m-%d)"
+            days_ago=$(days_from_today $from_date_ia)
+            if [[ $days -ge 0 ]]; then
+              days_ago_msg="$days_ago days ago"
+            else
+              days=$((- days))
+              days_ago_msg="$days_ago days from now"
+            fi
+
+            if [[ $days_ago -gt $cutoff ]]; then
+              color='red'
+            else
+              color='brightgreen'
+            fi
+
+          fi
+          echo "{ \"schemaVersion\": 1, \"label\": \"${srcname} status\", \"message\": \"Latest from ${from_date}( ${days_ago_msg} )\", \"color\": \"$color\" }" > status/${srcname}.json
+
+          cat status/${srcname}.json
+        done
