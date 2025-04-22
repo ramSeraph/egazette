@@ -236,7 +236,8 @@ srcinfos = {
         'source'    : 'Government of Haryana',
         'category'  : 'Haryana Gazette',
         'start_date': datetime(1958, 1, 1),
-        'prefix'    : 'in.gazette.haryanaarch.'
+        'prefix'    : 'in.gazette.haryanaarch.',
+        'enabled'   : False
     },
     # 'in.gazette.kerala.<year>-<month>-<day>' start_date: 2007-05-22 end_date: 2018-06-12 count: 552
     # 'in.gazette.kerala_new.<year>-<month>-<day>.<id>' start_date: 2007-05-22 end_date: 2022-02-22 count: 33070
@@ -246,7 +247,8 @@ srcinfos = {
         'category'  : 'Kerala Gazette',
         'prefix'    : 'in.gazette.kerala_new.',
         'start_date': datetime(2007, 1, 1),
-        'identifier_fn': kerala_identifier
+        'identifier_fn': kerala_identifier,
+        'enabled'   : False
     },
     'keralacompose' : {
         'languages' : ['eng', 'mal'],
