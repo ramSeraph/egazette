@@ -321,6 +321,22 @@ class GazetteIA:
                         to_del.append(corrected_pdf_file)
                     continue
 
+                elif re.search('pdf requires a password', msg):
+
+                    rawfile = self.pop_rawfile(to_upload)
+
+                    if rawfile is None:
+                        self.logger.error('Unable to locate the bad locked pdf for %s', identifier)
+                        break
+
+                    renamed_pdf_file = self.rename_bad_pdf(rawfile)
+                    to_del.append(renamed_pdf_file)
+                    if renamed_pdf_file in files:
+                        self.logger.warning('Renamed PDF file already exists. Ignoring. for %s', identifier)
+                    else:
+                        to_upload.append(renamed_pdf_file)
+                    continue
+
             except Exception as e:
                 self.logger.warning('Error in upload for %s: %s', identifier, e)
 
