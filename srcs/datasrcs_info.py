@@ -441,6 +441,13 @@ srcinfos = {
         'start_date': datetime(2010, 4, 1),
         'collection': ''
     },
+    'rsa' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Rajasthan State Secretariat',
+        'category'  : 'Rajasthan State Archive',
+        'collection': '',
+        'prefix'    : 'in.rajastahan.state.archive.'
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
