@@ -44,6 +44,8 @@ from . import uttarpradesh
 from . import chandigarh
 from . import manipur
 
+from . import rsa
+
 from .datasrcs_info import srcinfos
 
 srcdict = { \
@@ -99,6 +101,7 @@ srcdict = { \
 'uttarpradesh'         : uttarpradesh.UttarPradesh, \
 'chandigarh'           : chandigarh.Chandigarh, \
 'manipur'              : manipur.Manipur, \
+'rsa'                  : rsa.RajasthanStateArchive, \
 }
 
 srchierarchy = {
