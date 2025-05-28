@@ -1,12 +1,12 @@
-import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import re
 import os
-import ssl
 import json
 import base64
 
 from .basegazette import BaseGazette
 from ..utils import utils
+from ..utils import ext_ops
 from ..utils.metainfo import MetaInfo
 
 class Punjab(BaseGazette):
@@ -97,21 +97,21 @@ class Punjab(BaseGazette):
         order = []
         for td in tr.find_all('td'):
             txt = utils.get_tag_contents(td)
-            if txt and re.search('Department', txt):
+            if txt and re.search(r'Department', txt):
                 order.append('department')
-            elif txt and re.search('Notification\s+No', txt):
+            elif txt and re.search(r'Notification\s+No', txt):
                 order.append('notification_num')
-            elif txt and re.search('Subject', txt):
+            elif txt and re.search(r'Subject', txt):
                 order.append('subject')
-            elif txt and re.search('Notification\s+For', txt):
+            elif txt and re.search(r'Notification\s+For', txt):
                 order.append('notification_type')
-            elif txt and re.search('Gazette\s+No', txt):
+            elif txt and re.search(r'Gazette\s+No', txt):
                 order.append('gznum')
-            elif txt and re.search('Type', txt):
+            elif txt and re.search(r'Type', txt):
                 order.append('gztype')
-            elif txt and re.search('Category', txt):
+            elif txt and re.search(r'Category', txt):
                 order.append('category')
-            elif txt and re.search('Detail', txt):
+            elif txt and re.search(r'Detail', txt):
                 order.append('download')
             else:    
                 order.append('')
@@ -136,11 +136,12 @@ class Punjab(BaseGazette):
                     link = td.find('a')
                     if link and link.get('onclick'):
                         onclick = link.get('onclick')
-                        reobj   = re.search('\d+', onclick) 
+                        reobj   = re.search(r'\d+', onclick) 
                         if reobj:
                             metainfo['docid'] = onclick[reobj.start():reobj.end()]
             i += 1           
         return metainfo   
+
 
 class PunjabDSA(BaseGazette):
     def __init__(self, name, storage):
@@ -154,33 +155,6 @@ class PunjabDSA(BaseGazette):
         datestr = utils.dateobj_to_str(dateobj, '-', reverse=True)
         postdata = "{'fromdate': '%s', 'todate': '%s'}" % (datestr, datestr)
         return postdata.encode('utf-8')
-
-    def download_oneday(self, relpath, dateobj):
-        dls = []
-        postdata = self.get_post_data(dateobj)
-        accept_hdr = {'Content-Type': 'application/json'}
-        response = self.download_url(self.dateurl, postdata = postdata, \
-                                     encodepost = False, headers= accept_hdr)
-
-        if not response or not response.webpage:
-            self.logger.warning('Could not download search result for date %s', \
-                              dateobj)
-            return dls
-
-        try:
-            x = json.loads(response.webpage)
-        except Exception as e:
-            self.logger.warning('Unable to parse json for %s', dateobj)
-            return dls
-
-
-        for d in x['data']:
-            metainfo =  self.get_metainfo(d, dateobj)
-            if metainfo:
-                relurl =  self.download_gazette(relpath, metainfo)
-                if relurl:
-                    dls.append(relurl) 
-        return dls
 
     def get_metainfo(self, d, dateobj):
         metainfo = MetaInfo()
@@ -206,6 +180,34 @@ class PunjabDSA(BaseGazette):
 
         return metainfo
 
+    def pull_gazette(self, gurl, referer = None, postdata = None,
+                     cookiefile = None, headers = {}, \
+                     encodepost = True):
+
+        response = BaseGazette.pull_gazette(self, gurl, referer = referer, postdata = postdata,
+                                            cookiefile = cookiefile, headers = headers,
+                                            encodepost = encodepost)
+
+        if response is None or response.webpage is None:
+            return None
+
+        try:
+            x = json.loads(response.webpage)
+        except Exception:
+            self.logger.warning('Error in parsing json on the request')
+            return None
+
+        if 'data' in x and len(x['data']) > 0 and 'Output_File' in x['data'][0]:
+            try:
+                doc = base64.b64decode(x['data'][0]['Output_File'])
+                response.webpage = doc
+            except Exception:
+                return None
+        else:
+            return None
+
+        return response
+
     def download_gazette(self, relpath, metainfo):
         if 'Request_Id' not in metainfo:
             return None
@@ -218,34 +220,46 @@ class PunjabDSA(BaseGazette):
         accept_hdr = {'Content-Type': 'application/json'}
 
         gurl = self.gzurl
-        if self.storage_manager.should_download_raw(relurl, gurl, validurl = False):
-            response = self.download_url(gurl, encodepost = False, \
-                                 headers = accept_hdr,  postdata = postdata)
-            if response and response.webpage:
-                if self.save_rawdoc(relurl, response.webpage, metainfo):
-                    return relurl
-                                 
-            return None 
+        if self.save_gazette(relurl, gurl, metainfo, postdata = postdata, \
+                             encodepost = False, hdrs = accept_hdr, \
+                             validurl = False):
+            return relurl
 
-        return None    
+        return None
+ 
+    def is_valid_gazette(self, doc, min_size):
+        mtype = ext_ops.get_buffer_type(doc)
 
-    def save_rawdoc(self, relurl, doc, metainfo):
-        try:
-            x = json.loads(doc)
-        except Exception as e:
-            self.logger.warning('Error in parsing json on the request of %s', relurl)
+        if mtype != 'application/pdf':
             return False
 
-        updated = False
-        if 'data' in x and len(x['data']) > 0 and 'Output_File' in x['data'][0]:
-            doc = base64.b64decode(x['data'][0]['Output_File'])
-            if doc and self.storage_manager.save_rawdoc(self.name, relurl, None, doc):
-                updated = True
-                self.logger.info('Saved rawdoc %s', relurl)
+        return BaseGazette.is_valid_gazette(self, doc, min_size)
 
-        if self.storage_manager.save_metainfo(self.name, relurl, metainfo):
-            updated = True
-            self.logger.info('Saved metainfo %s', relurl)
-        return updated
+    def download_oneday(self, relpath, dateobj):
+        dls = []
+        postdata = self.get_post_data(dateobj)
+        accept_hdr = {'Content-Type': 'application/json'}
+        response = self.download_url(self.dateurl, postdata = postdata, \
+                                     encodepost = False, headers= accept_hdr)
 
-            
+        if not response or not response.webpage:
+            self.logger.warning('Could not download search result for date %s', \
+                              dateobj)
+            return dls
+
+        try:
+            x = json.loads(response.webpage)
+        except Exception:
+            self.logger.warning('Unable to parse json for %s', dateobj)
+            return dls
+
+
+        for d in x['data']:
+            metainfo =  self.get_metainfo(d, dateobj)
+            if metainfo:
+                relurl =  self.download_gazette(relpath, metainfo)
+                if relurl:
+                    dls.append(relurl) 
+        return dls
+
+           
