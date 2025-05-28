@@ -62,10 +62,11 @@ srcinfos = {
     'bihar' : { 
         'languages' : ['eng', 'hin'], 
         'source'    : 'Government of Bihar',
-        'category'  : 'Gazette of Bihar',
+        'category'  : 'Bihar Gazette',
         'prefix'    : 'in.gov.bih.gazette.',
         'start_date': datetime(2008, 9, 24),
-        'identifier_fn': bihar_identifier
+        'identifier_fn': bihar_identifier,
+        'collection': ''
     },
     # 'delhi.egaz.<year>.<month_no_pad>.<day_no_pad>' start_date: 1987-01-01, end_date: 2017-09-08 count: 831
     # 'in.gazette.delhi.w.<year>-<month>-<day>.<id>' start_date: 2011-01-06, end_date: 2025-02-13 count: 627

@@ -7,13 +7,13 @@ from .central import CentralBase
 class Bihar(CentralBase):
     def __init__(self, name, storage):
         CentralBase.__init__(self, name, storage)
-        self.hostname   = 'egazette.bih.nic.in'
-        self.baseurl    = 'http://egazette.bih.nic.in/SearchGazette.aspx'
+        self.hostname   = 'egazette.bihar.gov.in'
+        self.baseurl    = 'http://egazette.bihar.gov.in/SearchGazette.aspx'
         self.search_endp = 'SearchGazette.aspx'
         self.result_table = 'ctl00_ContentPlaceHolder1_DetailView'
 
     def get_post_data(self, tags, dateobj):
-        datestr  = utils.dateobj_to_str(dateobj, '/')
+        datestr  = dateobj.strftime('%m/%d/%Y')
         postdata = []
         gztype   = None
         for tag in tags:
@@ -26,7 +26,7 @@ class Bihar(CentralBase):
                 if t == 'image' or name in ['ctl00$ContentPlaceHolder1$TxtGazetteNo', 'ctl00$ContentPlaceHolder1$BtnCancel']:
                     continue
                 if name == 'ctl00$ContentPlaceHolder1$TYPE':
-                    if gztype != None:
+                    if gztype is not None:
                         continue
                     else:
                         value  = 'RadioButton1'
@@ -49,7 +49,7 @@ class Bihar(CentralBase):
                     value = '1'
 
             if name:
-                if value == None:
+                if value is None:
                     value = ''
                 postdata.append((name, value))
 
@@ -59,9 +59,9 @@ class Bihar(CentralBase):
         order = []
         for td in tr.find_all('th'):
             txt = utils.get_tag_contents(td)
-            if txt and re.search('Gazette\s+Number', txt):
+            if txt and re.search(r'Gazette\s+Number', txt):
                 order.append('download')
-            elif txt and re.match('\s*Type\s*$', txt):
+            elif txt and re.match(r'\s*Type\s*$', txt):
                 order.append('gztype')
             else:    
                 order.append('')
@@ -69,7 +69,7 @@ class Bihar(CentralBase):
 
     def find_next_page(self, tr, curr_page):
         for tr in tr.find_all('tr'):
-            if tr.find('tr') != None:
+            if tr.find('tr') is not None:
                 continue
 
             nextpage = None
@@ -78,20 +78,20 @@ class Bihar(CentralBase):
                 if not txt:
                     continue
                 txt = txt.strip()
-                if not re.match('\d+$', txt):
+                if not re.match(r'\d+$', txt):
                     continue
                 v = int(txt)
-                if v == curr_page +1 and td.find('a') != None:
+                if v == curr_page +1 and td.find('a') is not None:
                     nextpage = td.find('a')
                     return nextpage
         return None
 
     def download_nextpage(self, nextpage, search_url, postdata, cookiejar):
         href   = nextpage.get('href')
-        if href == None:
+        if href is None:
             return None
 
-        reobj = re.search('javascript:__doPostBack\(\'(?P<event_target>[^\']+)\',\s*\'(?P<event_arg>[^\']+)\'', href)
+        reobj = re.search(r'javascript:__doPostBack\(\'(?P<event_target>[^\']+)\',\s*\'(?P<event_arg>[^\']+)\'', href)
         if not reobj:
             return None
 
@@ -118,7 +118,7 @@ class Bihar(CentralBase):
                            postdata, cookiejar):
         dls = []
         for metainfo in metainfos:
-            if not 'download' in metainfo:
+            if 'download' not in metainfo:
                 continue 
 
             link   = metainfo['download']
@@ -128,7 +128,7 @@ class Bihar(CentralBase):
             if not href or not gznum:
                 continue
 
-            reobj = re.search('javascript:__doPostBack\(\'(?P<event_target>[^\']+)\',\s*\'(?P<event_arg>[^\']*)\'', href)
+            reobj = re.search(r'javascript:__doPostBack\(\'(?P<event_target>[^\']+)\',\s*\'(?P<event_arg>[^\']*)\'', href)
             groupdict    = reobj.groupdict()
             event_target = groupdict['event_target']
             event_arg    = groupdict['event_arg']
