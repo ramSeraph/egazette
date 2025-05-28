@@ -257,9 +257,9 @@ class BaseGazette(Downloader):
                                          postdata = postdata, loadcookies = cookiefile,\
                                          headers = headers, encodepost = encodepost)
         else:
-            # TODO: why no header passing?
             response = self.download_url(gurl, postdata = postdata, \
                                          encodepost = encodepost, \
+                                         headers = headers, \
                                          referer = referer)
 
         return response
