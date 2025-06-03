@@ -220,7 +220,18 @@ srcinfos = {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Uttarakhand',
         'category'  : 'Uttarakhand Gazette',
-        'start_date': datetime(2014, 1, 1)
+        'start_date': datetime(2005, 1, 1),
+        'collection': '',
+        'prefix'    : 'in.gazette.uttarakhand_new.'
+    },
+    'uttarakhand_gos' : {
+        'languages' : ['eng', 'hin'],
+        'source'    : 'Government of Uttarakhand',
+        'category'  : 'Uttarakhand Government Order',
+        'start_date': datetime(1999, 5, 13),
+        'prefix'    : 'in.gov.uttarakhand.go.',
+        'collection': 'uttarakhand-gos',
+        'type'      : 'goir'
     },
     'himachal' : {
         'languages' : ['eng', 'hin'],
