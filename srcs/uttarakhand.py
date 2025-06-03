@@ -1,194 +1,218 @@
-import re
 import os
-import datetime
-import urllib.request, urllib.parse, urllib.error
+import json
+import urllib.parse
 from http.cookiejar import CookieJar
+from datetime import datetime
 
 from .basegazette import BaseGazette
-from ..utils import utils
 from ..utils.metainfo import MetaInfo
 
-class Uttarakhand(BaseGazette):
+class UttarakhandGO(BaseGazette):
     def __init__(self, name, storage):
         BaseGazette.__init__(self, name, storage)
-        self.baseurl      = 'https://gazettes.uk.gov.in/'
-        self.search_endp  = 'searchgazette.aspx'
-        self.searchurl    = urllib.parse.urljoin(self.baseurl, self.search_endp)
-        self.hostname     = 'gazettes.uk.gov.in'
+        self.baseurl     = 'https://go.uk.gov.in/'
+        self.base_endp   = 'en/Search/index'
+        self.search_endp = 'en/Search/SearchGO'
+        self.hostname    = 'go.uk.gov.in'
 
-	
-    def get_search_form(self, webpage, endp):
-        d = utils.parse_webpage(webpage, self.parser)
-        if d == None:
-            return None
 
-        search_form = d.find('form', {'action': endp})
-        return search_form
+    def get_postdata(self, dateobj):
+        date_str = dateobj.strftime('%Y-%m-%d')
+        postdata = {
+            'CategoryID': "",
+            'DepartmentID': "",
+            'GONo': "",
+            'SearchText': "",
+            'SectionID': "",
+            'Subject': "",
+            'fromdate': date_str,
+            'todate': date_str,
+        }
+        return json.dumps(postdata).encode('utf8')
 
-    def get_form_data(self, webpage, dateobj):
-        search_form = self.get_search_form(webpage, self.search_endp)
-        if search_form == None:
-            self.logger.warning('Unable to get the search form for day: %s', dateobj)
-            return None 
+    def get_metainfo(self, x, dateobj):
+        metainfo = MetaInfo()
+        metainfo.set_date(dateobj)
 
-        formdata = []
-        reobj  = re.compile('^(input|select)$')
-        inputs = search_form.find_all(reobj)
-        for tag in inputs:
-            name  = None
-            value = None
+        metainfo['subject']    = x['Subject']
+        metainfo['department'] = x['DepartmentNameE']
+        metainfo['section']    = x['SectionNameE']
+        metainfo['category']   = x['CategoryNameE']
+        metainfo['gonum']      = x['GONo']
+        metainfo['url']        = x['FilePath']
 
-            if tag.name == 'input':
-                name  = tag.get('name')
-                value = tag.get('value')
-                t     = tag.get('type')
-                if t == 'image' or t == 'submit':
-                    continue
-            elif tag.name == 'select':        
-                name = tag.get('name')
-                value = utils.get_selected_option(tag)
-            if name:
-                if value == None:
-                    value = ''
-                formdata.append((name, value))
-        return formdata
+        metainfo['gotype'] = 'Amendment' if x['G0Type'] == 'A' else 'New'
 
-    def get_mismatched_field(self, formdata, expected):
-        mismatched = None
-        for k,v in expected.items():
-            if mismatched != None:
-                break
-            for k1, v1 in formdata:
-                if k1 != k:
-                    continue
-                if v1 != v:
-                    mismatched = k
-                    break
-        return mismatched
+        if not metainfo['url']:
+            metainfo['url'] = x['File_Path_Word']
+
+        return metainfo
 
     def download_oneday(self, relpath, dateobj):
         dls = []
 
-        cookiejar  = CookieJar()
-        response   = self.download_url(self.searchurl, savecookies = cookiejar)
+        cookiejar = CookieJar()
+        baseurl   = urllib.parse.urljoin(self.baseurl, self.base_endp)
+        response  = self.download_url(baseurl, savecookies = cookiejar)
         if not response or not response.webpage:
             self.logger.warning('Could not get base page for date %s', \
                               dateobj)
             return dls
 
-        expected_fields = {
-            'ddltodate_date'   : utils.pad_zero(dateobj.day),
-            'ddlfromdate_day'  : utils.pad_zero(dateobj.day),
-            'ddltodate_mon'    : utils.pad_zero(dateobj.month),
-            'ddlfromdate_mon'  : utils.pad_zero(dateobj.month),
-            'ddltodate_year'   : utils.pad_zero(dateobj.year),
-            'ddlfromdate_year' : utils.pad_zero(dateobj.year),
-        }
+        searchurl = urllib.parse.urljoin(self.baseurl, self.search_endp)
 
-        formdata = self.get_form_data(response.webpage, dateobj)
-        while True:
-            field_to_update = self.get_mismatched_field(formdata, expected_fields)
-            if field_to_update == None:
-                break
+        postdata = self.get_postdata(dateobj)
 
-            formdata = utils.replace_field(formdata, field_to_update, \
-                                           expected_fields[field_to_update])
-            formdata = utils.replace_field(formdata, '__EVENTTARGET', field_to_update)
+        accept_hdr = {'Content-Type': 'application/json'}
+        response = self.download_url(searchurl, postdata = postdata, \
+                                     encodepost = False, headers=accept_hdr)
 
-            response = self.download_url(self.searchurl, savecookies = cookiejar, \
-                                       loadcookies = cookiejar, postdata = formdata, \
-                                       referer = self.searchurl)
-            if not response or not response.webpage:
-                self.logger.warning('Could not make call to update field %s for date %s', \
-                                    field_to_update, dateobj)
-                return dls
-            formdata = self.get_form_data(response.webpage, dateobj)
-
-        formdata.append(('Button2', 'Search'))
-        response = self.download_url(self.searchurl, savecookies = cookiejar, \
-                                   loadcookies = cookiejar, postdata = formdata, \
-                                   referer = self.baseurl)
         if not response or not response.webpage:
             self.logger.warning('Could not download search result for date %s', \
-                              dateobj)
+                                dateobj)
             return dls
 
-        d = utils.parse_webpage(response.webpage, self.parser)
-        if not d:
-            self.logger.warning('Could not parse search result for date %s', \
-                              dateobj)
+        try:
+            x = json.loads(response.webpage)
+        except Exception:
+            self.logger.warning('Unable to parse json for %s', dateobj)
             return dls
-        
-        minfos = self.get_metainfos(d, dateobj)
-        for metainfo in minfos:
-            if 'url' not in metainfo or 'notification_num' not in metainfo:
-                self.logger.warning('Ignoring %s', metainfo)
-                continue
-            
-            filename, n = re.subn('[\s/]+', '_', metainfo['notification_num'])
-            relurl = os.path.join(relpath, filename)   
+
+        metainfos = []
+        for d in x: 
+            metainfo = self.get_metainfo(d, dateobj)
+            metainfos.append(metainfo)
+
+        for metainfo in metainfos:
+            gzurl = metainfo.pop('url')
+            gzurl = gzurl.replace('http://', 'https://')
+            if not gzurl.startswith('https'):
+                gzurl = urllib.parse.urljoin(self.baseurl, gzurl)
+
+            docid = gzurl.split('/')[-1].rsplit('.', 1)[0]
+            docid = docid.replace('\\', '-')
+
+            relurl = os.path.join(relpath, docid)   
              
-            if self.save_gazette(relurl, metainfo['url'], metainfo):
+            if self.save_gazette(relurl, gzurl, metainfo):
                 dls.append(relurl)
 
         return dls
-    
-    def get_metainfos(self, d, dateobj):
-        minfos = []
-        
-        order = None
-        for table in d.find_all('table'):
-            if table.find('table'):
-                continue
 
-            for tr in table.find_all('tr'):
-                if not order:
-                    order = self.get_field_order(tr)
-                    continue
-                
-                metainfo = self.process_row(tr, order, dateobj)
-                if metainfo:
-                    minfos.append(metainfo)
-                       
-            if order:
-                break
+class Uttarakhand(BaseGazette):
+    def __init__(self, name, storage):
+        BaseGazette.__init__(self, name, storage)
+        self.baseurl     = 'https://gazettes.uk.gov.in/'
+        self.hostname    = 'gazettes.uk.gov.in'
+        self.base_endp   = 'en/Search/index'
+        self.search_endp = 'en/Search/SearchGazette'
 
-        return minfos
-     
-    def get_field_order(self, tr):
-        order = []
-        for td in tr.find_all('td'):
-            txt = utils.get_tag_contents(td)
-            if txt and re.search('GO\s+No', txt):
-                order.append('notification_num')     
-            elif txt and re.search('GO\s+Description', txt):
-                order.append('subject')     
-            elif txt and re.search('Issued\s+by', txt):
-                order.append('issued_by')     
-            else:
-                order.append('')     
-       
-        if 'notification_num' in order and 'subject' in order and \
-                'issued_by' in order:
-            return order
+    def get_postdata(self, dateobj):
+        date_str = dateobj.strftime('%Y-%m-%d')
+        postdata = {
+            'BhagID': "",
+            'CategoryID': "",
+            'DepartmentID': "",
+            'EntryType': 2,
+            'GONo': "",
+            'SearchText': "",
+            'SectionID': "",
+            'Subject': "",
+            'WeekDate2': date_str,
+            'fromdate': "",
+            'todate': "",
+        }
+        return json.dumps(postdata).encode('utf8')
 
-        return None                
-    
-    def process_row(self, tr, order, dateobj):
+    def get_metainfo(self, x):
         metainfo = MetaInfo()
-        metainfo.set_date(dateobj)    
 
-        i = 0
-        for td in tr.find_all('td'):
-            if len(order) > i:
-                if order[i] in ['notification_num', 'subject', 'issued_by']:
-                    txt = utils.get_tag_contents(td)
-                    if txt:
-                        metainfo[order[i]] = txt
-            i += 1            
-        link = tr.find('a')
-        if link and link.get('href'):
-            href = link.get('href')
-            metainfo['url'] = urllib.parse.urljoin(self.searchurl, href)
+        def get_val(k):
+            hk = f'{k}H'
+            ek = f'{k}E'
+            v = x[ek]
+            if v == '':
+                v = x[hk]
+            if v is None:
+                v = ''
+            return v
 
-        return metainfo 
+        metainfo['subject']    = get_val('Subject')
+        metainfo['department'] = get_val('DepartmentName')
+        metainfo['section']    = get_val('SectionName')
+        metainfo['category']   = get_val('CategoryName')
+        metainfo['url']        = x['File_Path_PDF']
+        metainfo['partnum']    = x['BhagID']
+        metainfo['notification_num']  = x['GONO']
+        metainfo['notification_date'] = datetime.strptime(x['GoDate2'], '%d-%m-%Y').strftime('%Y-%m-%d')
+        metainfo['pageno'] = x['PageNo']
+
+        if not metainfo['url']:
+            metainfo['url'] = x['File_Path_Word']
+
+        return metainfo
+
+    def download_oneday(self, relpath, dateobj):
+        dls = []
+
+        cookiejar = CookieJar()
+        baseurl   = urllib.parse.urljoin(self.baseurl, self.base_endp)
+        response  = self.download_url(baseurl, savecookies = cookiejar)
+        if not response or not response.webpage:
+            self.logger.warning('Could not get base page for date %s', \
+                              dateobj)
+            return dls
+
+        searchurl = urllib.parse.urljoin(self.baseurl, self.search_endp)
+
+        postdata = self.get_postdata(dateobj)
+
+        accept_hdr = {'Content-Type': 'application/json'}
+        response = self.download_url(searchurl, postdata = postdata, \
+                                     encodepost = False, headers=accept_hdr)
+
+        if not response or not response.webpage:
+            self.logger.warning('Could not download search result for date %s', \
+                                dateobj)
+            return dls
+
+        try:
+            x = json.loads(response.webpage)
+        except Exception:
+            self.logger.warning('Unable to parse json for %s', dateobj)
+            return dls
+
+        metainfos_by_url = {}
+        for d in x: 
+            metainfo = self.get_metainfo(d)
+            url = metainfo.pop('url')
+            if url not in metainfos_by_url:
+                metainfos_by_url[url] = []
+            metainfos_by_url[url].append(metainfo)
+
+        for gzurl, metainfos in metainfos_by_url.items():
+            new_meta = MetaInfo()
+            new_meta.set_date(dateobj)
+
+            new_meta['notifications'] = []
+            for metainfo in metainfos:
+                notification = {}
+                for k in metainfo.keys():
+                    notification[k] = metainfo[k]
+                new_meta['notifications'].append(notification)
+
+            gzurl = gzurl.replace('http://', 'https://')
+            if not gzurl.startswith('https'):
+                gzurl = urllib.parse.urljoin(self.baseurl, gzurl)
+
+            docid = gzurl.split('/')[-1].rsplit('.', 1)[0]
+            docid = docid.replace('\\', '-')
+
+            relurl = os.path.join(relpath, docid)   
+
+            if self.save_gazette(relurl, gzurl, new_meta):
+                dls.append(relurl)
+
+        return dls
+
+
