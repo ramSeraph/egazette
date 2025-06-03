@@ -72,6 +72,7 @@ srcdict = { \
 'punjab'               : punjab.Punjab, \
 'punjabdsa'            : punjab.PunjabDSA, \
 'uttarakhand'          : uttarakhand.Uttarakhand, \
+'uttarakhand_gos'      : uttarakhand.UttarakhandGO, \
 'himachal'             : himachal.Himachal, \
 'himachalarchive'      : himachal.HimachalArchive, \
 'haryana'              : haryana.Haryana, \
