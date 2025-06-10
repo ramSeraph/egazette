@@ -1,4 +1,5 @@
 import pymupdf
+from collections import defaultdict
 
 def extract_links_from_pdf(fileobj):
     all_links = []
@@ -44,6 +45,57 @@ def convert_to_image_pdf_file(inp_file, outp_file):
     with open(outp_file, 'wb') as f:
         f.write(pdf_bytes)
 
+def get_all_used_unembedded_fonts(file_bytes):
+    page_fonts = defaultdict(list)
+    processed_fonts = set()
+        
+    doc = pymupdf.open(stream=file_bytes, filetype='pdf')
+
+    for page_num in range(doc.page_count):
+        page = doc[page_num]
+        
+        text_dict = page.get_text("dict")
+        
+        page_font_names = set()
+        
+        for block in text_dict.get("blocks", []):
+            if "lines" in block:
+                for line in block["lines"]:
+                    for span in line.get("spans", []):
+                        font_name = span.get("font")
+                        if font_name:
+                            page_font_names.add(font_name)
+        
+        font_list = page.get_fonts(full=True)
+        
+        # Process each font used on this page
+        for font_info in font_list:
+            # 453, 'n/a', 'TrueType', 'Nudi01kBold', 'F1', 'WinAnsiEncoding', 0
+            font_ref = font_info[0]
+            font_name = font_info[3]
+            
+            if font_name in page_font_names:
+
+                font_embedded = False
+                try:
+                    _a, _b, _c, content = doc.extract_font(font_ref)
+                    if content is not None and len(content) > 0:
+                        font_embedded = True
+                except Exception as ex:
+                    print(ex)
+    
+                if not font_embedded:
+                    font_key = (font_name, page_num)
+                    
+                    if font_key not in processed_fonts:
+                        page_fonts[page_num].append(font_name)
+                        processed_fonts.add(font_key)
+        
+    doc.close()
+    
+    result = dict(sorted(page_fonts.items()))
+            
+    return result
 
 if __name__ == '__main__':
     import sys
