@@ -1,13 +1,28 @@
 import sys
+import subprocess
 import logging
 import argparse
+import shutil
+import tempfile
 from pathlib import Path
 
+import pymupdf
 import internetarchive as ia
 
 import gdrive
 from srcs.datasrcs_info import srcinfos, get_prefix
 from utils import ext_ops
+#from utils import pdf_ops
+from utils import xml_ops
+
+def run_external(cmd):
+    print(f'running cmd - {cmd}')
+    res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f'STDOUT: {res.stdout}')
+        print(f'STDERR: {res.stderr}')
+        raise Exception(f'command {cmd} failed with exit code: {res.returncode}')
+
 
 def get_enabled_srcnames():
     return [ k for k,v in srcinfos.items() if v.get('enabled', True) ]
@@ -98,7 +113,9 @@ class BaseProcess:
 
         working_dir.mkdir(exist_ok=True, parents=True)
 
-        ia_file.download(str(file))
+        if not file.exists():
+            ia_file.download(str(file))
+
         return file
 
     def upload(self, file):
@@ -141,6 +158,102 @@ class ExtensionChecker(BaseProcess):
             return False
         
         raise Exception(f'{unexpected}')
+
+class UnembeddedFontFixer(BaseProcess):
+    def __init__(self, args):
+        BaseProcess.__init__(self, args)
+        self.logger = logging.getLogger('unembeddedfontfixer')
+
+    def create_pdf(self, jpg_files, outp_file):
+        outdoc = pymupdf.open()
+    
+        for jpg_file in jpg_files:
+    
+            img           = pymupdf.open(stream=jpg_file.read_bytes(), filetype='jpg')
+            img_pdf_bytes = img.convert_to_pdf()
+            img_rect      = img[0].rect
+    
+            img.close()
+    
+            img_pdf = pymupdf.open(stream=img_pdf_bytes, filetype='pdf')
+    
+            page = outdoc.new_page(width  = img_rect.width,
+                                   height = img_rect.height)
+    
+            page.show_pdf_page(img_rect, img_pdf, 0)
+    
+        outp_file.write_bytes(outdoc.tobytes())
+    
+    
+    
+    def fix_file(self, inp_file, outp_file):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            work_dir = Path(tmpdirname)
+    
+            from_file = work_dir / 'from.pdf'
+            shutil.copy(inp_file, from_file)
+    
+            # patched mutool which can pick fonts from a directory
+            # https://gist.github.com/ramSeraph/5f595263c88d5cc8116d36da13d1e857
+            run_external(f"bin/mutool draw -n data/fonts -r 300 -c rgb -o '{work_dir}/page%05d.png' {from_file}")
+    
+            png_files = list(work_dir.glob('page*.png'))
+            run_external(f'mogrify -format jpg -quality 10 {work_dir}/*.png')
+            jpg_files = [ p.with_suffix('.jpg') for p in png_files ]
+            jpg_files.sort()
+            self.create_pdf(jpg_files, outp_file)
+    
+    
+    def process(self, item):
+        updated   = False
+        originals = []
+        all_names = set()
+        name_map = {}
+    
+        files = item.get_files()
+        for file in files:
+            all_names.add(file.name)
+            name_map[file.name] = file
+            if file.source == 'original' and not \
+               file.name.endswith('.xml') and \
+               file.format not in ['Metadata', 'Item Tile']:
+                originals.append(file)
+    
+        ext_map = get_ext_map(originals)
+    
+        bad_pdfs = [f for f in ext_map.get('.pdf-', [])]
+        if len(bad_pdfs) == 0:
+            return updated
+        
+        bad_pdf = bad_pdfs[0]
+    
+        meta_file_name = bad_pdf.name.replace('.pdf-', '.xml')
+        meta_file = name_map[meta_file_name]
+        orig_meta_file = self.download(meta_file)
+    
+        metainfo = xml_ops.read_tag_file(str(orig_meta_file), str(orig_meta_file))
+        fonts_fixed = metainfo.get('font_fixed', 'no')
+        if fonts_fixed == 'yes':
+            return updated
+    
+        orig_file = self.download(bad_pdf)
+    
+        #old_fixed_pdf = name_map[bad_pdf.name.replace('.pdf-', '.pdf')]
+        fixed_pdf_file = orig_file.with_suffix('.pdf')
+    
+        self.fix_file(orig_file, fixed_pdf_file)
+         
+        #self.delete(old_fixed_pdf)
+        self.upload(fixed_pdf_file)
+    
+        metainfo['fonts_fixed'] = 'yes'
+        xml_ops.print_tag_file(str(orig_meta_file), metainfo)
+        self.upload(orig_meta_file)
+
+        updated = True
+
+        return updated
+
 
 class DeleterByExtension(BaseProcess):
     def __init__(self, args):
@@ -348,6 +461,8 @@ class Reprocessor:
                 processor = ExtensionChecker(args)
             elif self.process == 'delete-by-extension':
                 processor = DeleterByExtension(args)
+            elif self.process == 'fix-unembedded-fonts':
+                processor = UnembeddedFontFixer(args)
             else: # more to be added later
                 self.logger.error(f'Unsupported process: {self.process}')
         except Exception:
@@ -468,7 +583,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-p', '--process', default='check-extensions',
                         choices=['convertdocs', 'fix-unkwn-extensions', 'check-extensions',
-                                 'delete-by-extension'],
+                                 'delete-by-extension', 'fix-unembedded-fonts'],
                         help='process to run')
 
     parser.add_argument('-s', '--source', dest='srcname', action='store',
