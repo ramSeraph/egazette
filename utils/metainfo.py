@@ -179,6 +179,7 @@ class MetaInfo(dict):
           ('upload_date',      'Upload Date'), \
           ('issuedate',        'Issue Date'), \
           ('num',              'Number'), \
+          ('document_type',    'Document Type'), \
           ('gazetteid',        'Gazette ID'), \
         ]
 
