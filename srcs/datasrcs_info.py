@@ -211,7 +211,8 @@ srcinfos = {
     'punjabdsa' : {
         'languages' : ['eng', 'pan'],
         'source'    : 'Government of Punjab',
-        'category'  : 'Punjab Gazette'
+        'category'  : 'Punjab Gazette',
+        'collection': '',
     },
     # 'in.gazette.uttarakhand.<year>-<month>-<day>.<id>' start_date: 2013-01-11 end_date: 2024-06-01 count: 611
     'uttarakhand' : {
