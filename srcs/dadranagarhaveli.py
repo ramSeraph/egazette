@@ -10,7 +10,10 @@ from .basegazette import BaseGazette
 
 ParseResults = namedtuple('ParseResults', "gznum gztype series_num")
 
-def parse_title(txt):
+def parse_title(txt, overrides={}):
+    if txt in overrides:
+        return overrides[txt]
+
     reobj = re.search(r'official\s+gazette\s*(:|-|–|—)?\s*series\s*(-|–|—)*\s*' + \
                       r'(?P<series>.+)\s+no\s*(\.)?\s*(?P<num>\d+)', txt, flags=re.IGNORECASE)
     if reobj:
@@ -35,7 +38,14 @@ class DadraNagarHaveli(BaseGazette):
             'M/s. Pendulum Store, : Shifting & Re-installation of Audio Visual equipment of Conference Hall, Secretariat Nani Daman to new conference hall, vidyut bhavan, Kachigam, Nani Daman.',
             'M/s. Shanti Procon LLP., : Providing Aluminum Partition and other Miscellaneous work at Vidyut Bhavan, Kachigam, Daman.',
             'Office of the Secretary (Revenue) : The draft Dadra and Nagar Haveli and Daman and Diu Tenancy Regulation, 2021',
+            'Cooperative Societies Department : Notification regarding classification of Co-operative Societies',
         ])
+
+        self.parse_overrides = {
+            'Official Gazette, Cooperative Societies Department : Official copy of Dadra and Nagar Haveli and Daman & Diu Co-operative Societies Regulation, 2024': ParseResults('01', 'Ordinary', 'I'),
+            'Official Gazette, Cooperative Societies Department : Official copy of Dadra and Nagar Haveli and Daman & Diu Co-operative Societies Rules, 2025': ParseResults('01', 'Ordinary', 'I'),
+            'Planning and Development Authority : Notification Regarding First Amendment to the General Development Rules – 2023 Daman': ParseResults('125', 'Extraordinary', None),
+        }
 
 
     def find_nextpage(self, d, curr_page):
@@ -73,7 +83,7 @@ class DadraNagarHaveli(BaseGazette):
                     txt = txt.strip()
 
                 if col == 'title':
-                    parsed = parse_title(txt)
+                    parsed = parse_title(txt, overrides=self.parse_overrides)
                     if parsed is None:
                         metainfo['title'] = txt
                     else:
@@ -180,7 +190,7 @@ if __name__ == '__main__':
         'Official Gazette : Extraordinary No.88': ParseResults('88', 'Extraordinary', None),
         'Official Gazette : SERIES – II No. 18': ParseResults('18', 'Ordinary', 'II'),
         'Official Gazette : SERIES —1 No. 05': ParseResults('05', 'Ordinary', '1'),
-        'Official Gazette : Series II No.12': ParseResults('12', 'Ordinary', 'II')
+        'Official Gazette : Series II No.12': ParseResults('12', 'Ordinary', 'II'),
     }
 
     for txt, expected in cases.items():
