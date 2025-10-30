@@ -132,6 +132,9 @@ runs:
           rm -rf data/metatags/*
         }
 
+        mkdir -p data/raw
+        mkdir -p data/metatags
+
         run_push
 
 
