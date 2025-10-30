@@ -637,7 +637,7 @@ class Rajasthan(BaseGazette):
         search_doc_postdata = self.get_searchdoc_postdata(postdata_dict, dataclass_props, dataclassid)
         search_doc_data = self.download_url_json(search_doc_url, search_doc_postdata, \
                                                  cookiejar, redirect_url_base)
-        if search_doc_data is None:
+        if search_doc_data is None or len(search_doc_data) < 2:
             self.logger.warning('Unable to search for doc')
             return None
 
