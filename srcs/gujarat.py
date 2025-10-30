@@ -296,6 +296,9 @@ class Gujarat(BaseGazette):
         if response is None or response.webpage is None:
             return None
 
+        if response.srvresponse.get('Content-Type', '').lower() == 'application/pdf':
+            return response
+
         d = utils.parse_webpage(response.webpage, self.parser)
         if not d:
             self.logger.warning('Unable to parse download page from %s', gurl)
