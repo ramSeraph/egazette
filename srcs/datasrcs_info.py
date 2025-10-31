@@ -451,7 +451,9 @@ srcinfos = {
         'languages' : ['eng'],
         'source'    : 'Government of Manipur',
         'category'  : 'Manipur Gazette',
-        'start_date': datetime(2010, 4, 1),
+        # start date for the older website
+        #'start_date': datetime(2010, 4, 1),
+        'start_date': datetime(2025, 8, 1),
         'collection': ''
     },
     'rsa' : {

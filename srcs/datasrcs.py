@@ -101,7 +101,7 @@ srcdict = { \
 'gujarat'              : gujarat.Gujarat, \
 'uttarpradesh'         : uttarpradesh.UttarPradesh, \
 'chandigarh'           : chandigarh.Chandigarh, \
-'manipur'              : manipur.Manipur, \
+'manipur'              : manipur.ManipurNew, \
 'rsa'                  : rsa.RajasthanStateArchive, \
 }
 

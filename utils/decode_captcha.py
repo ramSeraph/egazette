@@ -212,6 +212,9 @@ def tripura(img, outfile = None):
     val = tesseract(img)
     return val
 
+def manipur(img, outfile = None):
+    return himachal(img, outfile)
+
 def himachal(img, outfile = None):
     m = 2 
     #img = img.resize((int(img.size[0]*m), int(img.size[1]*m)))
