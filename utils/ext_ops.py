@@ -1,13 +1,18 @@
 import re
 import magic
+from pathlib import Path
 
 def get_file_type(filepath):
-    mtype = magic.from_file(filepath, mime = True)
-
-    return mtype
+    return get_buffer_type(Path(filepath).read_bytes())
 
 def get_buffer_type(buff):
+
     mtype = magic.from_buffer(buff, mime=True)
+
+    if mtype == 'application/octet-stream':
+        s_buff = buff.lstrip()
+        if s_buff and s_buff != buff:
+            return magic.from_buffer(s_buff, mime=True)
 
     return mtype
 
