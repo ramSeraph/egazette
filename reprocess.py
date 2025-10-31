@@ -1,4 +1,5 @@
 import sys
+import re
 import subprocess
 import logging
 import argparse
@@ -8,11 +9,12 @@ from pathlib import Path
 
 import pymupdf
 import internetarchive as ia
+from requests.exceptions import HTTPError
 
 import gdrive
 from srcs.datasrcs_info import srcinfos, get_prefix
 from utils import ext_ops
-#from utils import pdf_ops
+from utils import pdf_ops
 from utils import xml_ops
 
 def run_external(cmd):
@@ -118,12 +120,53 @@ class BaseProcess:
 
         return file
 
+    def rename_bad_pdf(self, rawfile, tempdir):
+        name = '%s-' %rawfile.split('/')[-1]
+        tmpfile = '%s/%s' % (tempdir, name)
+        shutil.copyfile(rawfile, tmpfile)
+        return tmpfile
+
+    def create_corrected_pdf(self, rawfile, tempdir):
+        name = '%s' %rawfile.split('/')[-1]
+
+        tmpfile = '%s/%s' % (tempdir, name)
+
+        try:
+            pdf_ops.convert_to_image_pdf_file(rawfile, tmpfile)
+            return tmpfile
+        except Exception as ex:
+            self.logger.error('Unable to convert unacceptble pdf file to image pdf file, ex: %s', ex)
+            return None
+
+
+
     def upload(self, file):
         identifier = file.parent.name
         self.logger.info(f'uploading file {file} to {identifier}')
-        ia.upload(identifier, str(file),
-                  access_key = self.ia_access_key,
-                  secret_key = self.ia_secret_key)
+        try:
+            ia.upload(identifier, str(file),
+                      access_key = self.ia_access_key,
+                      secret_key = self.ia_secret_key)
+        except HTTPError as e:
+            if not file.name.endswith('.pdf'):
+                raise e
+
+            self.logger.warning('Error in upload for %s: %s', identifier, e)
+            msg = str(e)
+
+            if re.search('Syntax error detected in pdf data', msg) or \
+                re.search('error checking pdf file', msg):
+                with tempfile.TemporaryDirectory() as tmpdirname:
+                    renamed_pdf_file = self.rename_bad_pdf(str(file), tmpdirname)
+                    corrected_pdf_file = self.create_corrected_pdf(str(file), tmpdirname)
+                    if corrected_pdf_file is None:
+                        raise Exception('unable to fix bad pdf file for upload')
+
+                    for file in [ renamed_pdf_file, corrected_pdf_file ]:
+                        self.logger.info(f'uploading fixed file {file} to {identifier}')
+                        ia.upload(identifier, file,
+                                    access_key = self.ia_access_key,
+                                    secret_key = self.ia_secret_key)
 
     def delete(self, ia_file):
         self.logger.info(f'deleting file {ia_file.name} of {ia_file.identifier}')
