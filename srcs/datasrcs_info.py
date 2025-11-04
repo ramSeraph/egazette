@@ -378,7 +378,8 @@ srcinfos = {
         'languages' : ['eng'],
         'source'    : 'Government of Arunachal pradesh',
         'category'  : 'Arunachal Pradesh Gazette',
-        'start_date': datetime(2020, 1, 1),
+        #'start_date': datetime(2020, 1, 1),
+        'start_date': datetime(2025, 7, 1),
         'identifier_fn': truncated_identifier,
         'collection': ''
     },
@@ -395,7 +396,8 @@ srcinfos = {
         'source'    : 'Government of Meghalaya',
         'category'  : 'Meghalaya Gazette',
         'start_date': datetime(2006, 3, 1),
-        'collection': ''
+        'collection': '',
+        'expected_delay': 120
     },
     'mizoram' : {
         'languages' : ['eng', 'lus'],
@@ -498,4 +500,8 @@ def get_identifier(relurl, metainfo, to_sandbox):
 def get_expected_update_frequency(srcname):
     srcinfo = srcinfos[srcname]
     return srcinfo.get('expected_update_frequency', 30)
+
+def get_expected_delay(srcname):
+    srcinfo = srcinfos[srcname]
+    return srcinfo.get('expected_delay', 30)
 

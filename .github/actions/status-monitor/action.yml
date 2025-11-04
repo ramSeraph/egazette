@@ -39,14 +39,14 @@ runs:
         }
         
         mkdir status
+        mkdir status/added
         srcnames="$(uv run python -c "from srcs.datasrcs_info import srcinfos; names = [ print(k) for k, v in srcinfos.items() if v.get('enabled', True) ]")"
         for srcname in $srcnames
         do
           prefix=$(uv run python -c "from srcs.datasrcs_info import get_prefix; print(get_prefix('$srcname', to_sandbox=False))")
-          known_update_frequency=$(uv run python -c "from srcs.datasrcs_info import get_expected_update_frequency; print(get_expected_update_frequency('$srcname'))")
+          known_delay=$(uv run python -c "from srcs.datasrcs_info import get_expected_delay; print(get_expected_delay('$srcname'))")
           from_date_ia=$(uvx --from internetarchive ia search $prefix --sort 'date desc' -f date --parameters="page=1&rows=1" | jq -r .date)
-
-          cutoff=$(( known_update_frequency * 2 ))
+          cutoff=$(( known_delay * 2 ))
         
           from_date=''
           days_ago=''
@@ -69,6 +69,31 @@ runs:
 
           fi
           echo "{ \"schemaVersion\": 1, \"label\": \"${srcname} status\", \"message\": \"Latest from ${from_date}( ${days_ago_msg} )\", \"color\": \"$color\" }" > status/${srcname}.json
-
           cat status/${srcname}.json
+
+          from_date_added_ia=$(uvx --from internetarchive ia search ${prefix} --sort 'addeddate desc' -f addeddate --parameters="page=1&rows=1" | jq -r .addeddate)
+          known_update_frequency=$(uv run python -c "from srcs.datasrcs_info import get_expected_update_frequency; print(get_expected_update_frequency('$srcname'))")
+          cutoff=$(( known_update_frequency * 2 ))
+          from_date=''
+          days_ago=''
+          if [[ $from_date_added_ia != '' ]]; then
+                          
+            from_date="$(date -d "$from_date_added_ia" +%Y-%m-%d)"
+            days_ago=$(days_from_today $from_date_added_ia)
+            if [[ $days -ge 0 ]]; then
+              days_ago_msg="$days_ago days ago"
+            else
+              days=$((- days))
+              days_ago_msg="$days_ago days from now"
+            fi
+
+            if [[ $days_ago -gt $cutoff ]]; then
+              color='red'
+            else
+              color='brightgreen'
+            fi
+          fi
+
+          echo "{ \"schemaVersion\": 1, \"label\": \"${srcname} status\", \"message\": \"Last update on ${from_date}( ${days_ago_msg} )\", \"color\": \"$color\" }" > status/added/${srcname}.json
+          cat status/added/${srcname}.json
         done
