@@ -96,7 +96,7 @@ srcdict = { \
 'meghalaya'            : meghalaya.Meghalaya, \
 'mizoram'              : mizoram.Mizoram, \
 'sikkim'               : sikkim.Sikkim, \
-'tripura'              : tripura.Tripura, \
+'tripura_new'          : tripura.Tripura, \
 'rajasthan'            : rajasthan.Rajasthan, \
 'gujarat'              : gujarat.Gujarat, \
 'uttarpradesh'         : uttarpradesh.UttarPradesh, \

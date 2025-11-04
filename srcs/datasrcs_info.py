@@ -412,11 +412,12 @@ srcinfos = {
         'identifier_fn': truncated_identifier,
         'collection': ''
     },
-    'tripura' : {
+    'tripura_new' : {
         'languages' : ['eng'],
         'source'    : 'Government of Tripura',
         'category'  : 'Tripura Gazette',
-        'start_date': datetime(2018, 1, 1),
+        # 'start_date': datetime(2018, 1, 1), for the previous verison of the source
+        'start_date': datetime(2025, 8, 30),
         'collection': ''
     },
     'rajasthan' : {

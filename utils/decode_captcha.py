@@ -6,6 +6,8 @@ import tempfile
 from PIL import Image
 from PIL import ImageFilter
 
+import captchabreaker
+
 
 
 def is_black(color, sub_limit):
@@ -206,11 +208,8 @@ def nh_score(img, cycles, threshold):
                 data[x, y] = 255
                             
 
-def tripura(img, outfile = None):
-    img = img.convert('L')
-    nh_score(img, 10, 10000 * 1000 * 1000)
-    val = tesseract(img)
-    return val
+def tripura(img):
+    return captchabreaker.solve(img)
 
 def manipur(img, outfile = None):
     return himachal(img, outfile)

@@ -3,6 +3,7 @@ import re
 import os
 from PIL import Image
 import io
+import json
 import datetime
 import urllib.request
 import urllib.parse
@@ -17,12 +18,12 @@ from ..utils import decode_captcha
 class Tripura(BaseGazette):
     def __init__(self, name, storage):
         BaseGazette.__init__(self, name, storage)
-        self.baseurl      = 'https://egazette.tripura.gov.in/eGazette/home.jsp'
+        self.baseurl      = 'https://egazette.tripura.gov.in/egazette/'
         self.hostname     = 'egazette.tripura.gov.in'
-        self.search_endp  = 'newsearchresultpage.jsp'
+        self.search_endp  = '/egazette/newsearchresultpage.jsp'
 
     def get_captcha_value(self, cookiejar, referer):
-        captcha_url = urllib.parse.urljoin(self.baseurl, 'captchagen')
+        captcha_url = urllib.parse.urljoin(self.baseurl, 'CaptchaGen')
 
         response = self.download_url(captcha_url, loadcookies = cookiejar, referer = referer)
         if response is None or response.webpage is None:
@@ -79,8 +80,9 @@ class Tripura(BaseGazette):
         if captcha_value is None:
             return None
 
-        postdata = utils.replace_field(postdata, 'txtcaptchadata', captcha_value)
-        postdata.append(('btnsave', ''))
+        postdata.append(('txtkeyword', ''))
+        postdata.append(('txtcaptchadata', captcha_value))
+        postdata.append(('btns', ''))
 
         return postdata
 
@@ -171,6 +173,82 @@ class Tripura(BaseGazette):
 
         return metainfos
 
+    def download_metainfos(self, dls, metainfos, curr_url, event):
+        for metainfo in metainfos:
+
+            if event.is_set():
+                self.logger.warning('Exiting prematurely as timer event is set')
+                return
+
+            href   = metainfo.pop('href')
+            gzurl  = urllib.parse.urljoin(curr_url, href)
+            gzdate = metainfo.get_date()
+
+            #parsed   = urllib.parse.urlparse(href)
+            #bencoded = urllib.parse.parse_qs(parsed.query)['bencode'][0]
+            #bdecoded = base64.b64decode(base64.b64decode(bencoded))
+            #gztslno  = int(bdecoded)
+
+            gztype = metainfo['gztype'].lower()
+            gznum  = metainfo['gznum']
+
+            relpath = os.path.join(self.name, gzdate.__str__())
+            relurl  = os.path.join(relpath, f'{gztype}-{gznum}')
+
+            if self.save_gazette(relurl, gzurl, metainfo):
+                dls.append(relurl)
+
+
+    def get_master_token(self, cookiejar, fromdate, todate, referer):
+
+        jsurl = self.baseurl + "JavaScriptServlet"
+
+        response = self.download_url(jsurl, loadcookies = cookiejar, \
+                                    referer = referer, savecookies = cookiejar)
+        if response is None or response.webpage is None:
+            self.logger.warning('Unable to download javascript at %s for %s to %s', \
+                                jsurl, fromdate, todate)
+            return None
+
+        js_text = response.webpage.decode('utf-8')
+        match = re.search(r"var\s+masterTokenValue\s+=\s+'(?P<token>.*)';", js_text)
+        if match is None:
+            self.logger.warning('Unable to find master token in javascript for %s to %s', \
+                                fromdate, todate)
+            return None
+
+        master_token = match.group('token')
+
+        return master_token
+
+    def update_token(self, master_token, cookiejar, fromdate, todate, referer):
+
+        jsurl = self.baseurl + "JavaScriptServlet"
+
+        headers = {
+            'X-Requested-With': 'XMLHttpRequest', 
+            'Nicegazettesecurity': master_token,
+            'Origin': f'https://{self.hostname}',
+            'Host': self.hostname
+        }
+
+        response = self.download_url(jsurl, loadcookies = cookiejar,
+                                     referer = referer, savecookies = cookiejar,
+                                     headers = headers, method = 'POST')
+        if response is None or response.webpage is None:
+            self.logger.warning('Unable to download javascript at %s for %s to %s', \
+                                jsurl, fromdate, todate)
+            return None
+
+        js_text = response.webpage.decode('utf-8')
+        data = json.loads(js_text)
+        pageTokens = data.get('pageTokens', {})
+        new_token = pageTokens.get(self.search_endp, None)
+        if new_token is None:
+            return master_token
+
+        return new_token
+
     def sync(self, fromdate, todate, event):
         dls = []
         cookiejar = CookieJar()
@@ -183,16 +261,32 @@ class Tripura(BaseGazette):
                                 self.baseurl, fromdate, todate)
             return dls
 
+
         results_table = None
+        search_url = None
+
         while results_table is None:
             curr_url = response.response_url
+
+            import time
+            time.sleep(5)
+
+            master_token = self.get_master_token(cookiejar, fromdate, todate, curr_url)
+            if master_token is None:
+                return dls
 
             postdata = self.get_form_data(response.webpage, cookiejar, \
                                           curr_url, fromdate, todate)
             if postdata is None:
                 return dls
-            
+
+            master_token = self.update_token(master_token, cookiejar, fromdate, todate, curr_url)
+
+            postdata.append(('NICeGazetteSecurity', master_token))
+
+
             search_url = urllib.parse.urljoin(curr_url, self.search_endp)
+            search_url += f'?NICeGazetteSecurity={master_token}'
 
             response = self.download_url(search_url, postdata = postdata, referer = curr_url, \
                                          loadcookies = cookiejar, savecookies = cookiejar)
@@ -205,23 +299,7 @@ class Tripura(BaseGazette):
 
         metainfos = self.parse_results(results_table)
 
-        for metainfo in metainfos:
-
-            if event.is_set():
-                self.logger.warning('Exiting prematurely as timer event is set')
-                return dls
-
-            href   = metainfo.pop('href')
-            gzurl  = urllib.parse.urljoin(curr_url, href)
-            gzdate = metainfo.get_date()
-
-            parsed  = urllib.parse.urlparse(gzurl)
-            gztslno = urllib.parse.parse_qs(parsed.query)['gaztslno'][0]
-
-            relpath = os.path.join(self.name, gzdate.__str__())
-            relurl  = os.path.join(relpath, gztslno)
-            if self.save_gazette(relurl, gzurl, metainfo):
-                dls.append(relurl)
+        self.download_metainfos(dls, metainfos, curr_url, event)
 
         return dls
 

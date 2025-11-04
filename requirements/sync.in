@@ -7,3 +7,5 @@ requests
 requests-toolbelt
 calmjs
 wayback
+opencv-python-headless
+captchabreaker
