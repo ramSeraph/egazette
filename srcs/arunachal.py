@@ -1,78 +1,13 @@
-from http.cookiejar import CookieJar
 import re
 import os
 import datetime
+
+from urllib.parse import urljoin
 
 
 from ..utils import utils
 from ..utils.metainfo import MetaInfo
 from .basegazette import BaseGazette
-
-
-def parse_eog_info(filename, link_txt, subject):
-    out = {}
-    reobj = re.match(r'(?P<num>\d+)(.|-)(?P<rest>.*)', filename)
-    if reobj is None:
-        return None
-
-    g = reobj.groupdict()
-    num = g['num']
-    out['gznum'] = num
-
-    rest = g['rest']
-
-    if '/' in link_txt or 'act' not in link_txt.lower():
-        notification_num = link_txt
-        reobj = re.match(r'eog\s*(\.|-)?\s*no\s*(\.)?\s*\d+\s*(\.|-|,)\s*(?P<rest>.*)', \
-                         link_txt, flags=re.IGNORECASE)
-        if reobj is not None:
-            g = reobj.groupdict()
-            notification_num = g['rest']
-        out['notification_num'] = notification_num
-
-        if subject != notification_num and subject not in ['NA', 'GA']:
-            reobj = re.match(r'eog\s*(\.)?\s*no\s*(\.)?\s*\d+', \
-                             subject, flags=re.IGNORECASE)
-            if not reobj:
-                out['department'] = subject
-
-        if 'bill' in link_txt.lower() and '/' not in link_txt:
-            out['subject'] = subject
-            out['department'] = 'Legislative Assembly'
-    else:
-        out['notification_num'] = subject
-        out['subject'] = link_txt
-        out['department'] = 'Legislative Assembly'
-
-    if 'department' not in out:
-        rest = rest.replace('_', ' ')
-        rest = rest.replace('-', ' ')
-        rest = rest.strip()
-        rest = re.sub('^E\s*(\.)?\s*O\s*(\.)?\s*(\.)?\s*G(azette)?', 'EOG', rest)
-
-        reobj = re.search(r'eog\s*(\.)?\s*(no)?\s*(\.)?\s*(\d+)?\s*(\.)?\s*(\d{4})?\s*(?P<rest>\D+)\s*(\d{4})?', \
-                          rest, flags=re.IGNORECASE)
-        if reobj is not None:
-            g = reobj.groupdict()
-            rest_1 = g['rest']
-            rest_1 = rest_1.strip()
-            if rest_1 != '':
-                out['department'] = rest_1
-
-    if 'department' in out:
-        department = out['department']
-        if 'bill' in department.lower() or 'act' in department.lower() and 'subject' not in out: 
-            out['subject'] = department
-            out['department'] = 'Legislative Assembly'
-
-    if 'department' in out:
-        department = out['department']
-        reobj = re.search(r'\d+\.?\s*eog\s*(\.)?\s*(no)?\s*(\.)?\s*(\d+)?\s*(\.)?\s*(\d{4})?\s*(?P<rest>\D+)\s*(\d{4})?', \
-                          department, flags=re.IGNORECASE)
-        if reobj is not None:
-            g = reobj.groupdict()
-            out['department'] = g['rest']
-    return out
 
 
 def parse_ng_subject(txt):
@@ -112,43 +47,13 @@ def parse_ng_subject(txt):
 class Arunachal(BaseGazette):
     def __init__(self, name, storage):
         BaseGazette.__init__(self, name, storage)
-        self.ordinary_url      = 'https://printing.arunachal.gov.in/normal_gazette/?page_num={}'
-        self.extraordinary_url = 'https://printing.arunachal.gov.in/extra_ordinary_gazette/?page_num={}'
-        self.gzurl             = 'https://printing.arunachal.gov.in/download/' 
-        self.hostname          = 'printing.arunachal.gov.in'
+        self.baseurl  = 'https://printing.arunachal.gov.in/display-content.php'
+        self.hostname = 'printing.arunachal.gov.in'
 
-    def get_form_data(self, form):
-        postdata = []
+    def enhance_metainfo_ng(self, metainfo):
+        title = metainfo.get('title')
 
-        tags = form.find_all('input')
-        for tag in tags:
-            name  = tag.get('name')
-            value = tag.get('value')
-            if name:
-                postdata.append((name, value))
-
-        return postdata
-
-    def parse_date(self, txt):
-        reobj = re.search(r'published\s+date\s+:\s+(?P<month>\w+)(\.)?\s+(?P<day>\d+)(,)?\s+(?P<year>\d+)', txt)
-        if reobj is None:
-            self.logger.warning('Unable to parse date string %s', txt)
-            return None
-
-        g = reobj.groupdict()
-        year  = g['year']
-        month = g['month']
-        day   = g['day']
-        try:
-            pubdate = datetime.datetime.strptime(f'{day}-{month[:3]}-{year}', '%d-%b-%Y').date()
-        except Exception:
-            self.logger.warning('Unable to parse date year: %s, month: %s, day: %s', year, month, day)
-            return None
-
-        return pubdate
-
-    def enhance_ng_metainfo(self, txt, metainfo):
-        parsed = parse_ng_subject(txt)
+        parsed = parse_ng_subject(title)
         if parsed is None:
             return
 
@@ -163,101 +68,79 @@ class Arunachal(BaseGazette):
         if 'part' in parsed:
             metainfo['partnum'] = parsed['part']
 
-    def enhance_eog_metainfo(self, filename, link_txt, subject, metainfo):
-        eog_info = parse_eog_info(filename, link_txt, subject)
-        if eog_info is None:
-            return
+    def enhance_metainfo(self, metainfo):
+        gztype = metainfo.get_gztype()
+        if gztype == 'Ordinary':
+            self.enhance_metainfo_ng(metainfo)
 
-        metainfo.update(eog_info)
 
-    def process_row_ordinary(self, form):
+    def download_metainfos(self, metainfos, fromdate, todate):
+        relurls = []
+        for metainfo in metainfos:
+            issuedate = metainfo.get_date() 
+            if issuedate < fromdate.date() or issuedate > todate.date():
+                continue
+
+            download_url = metainfo.pop('download_url')
+            download_url = urljoin(self.baseurl, download_url)
+
+            filename = download_url.split('/')[-1].rsplit('.', 1)[0].lower()
+
+            relpath = os.path.join(self.name, issuedate.__str__())
+            relurl = os.path.join(relpath, filename)
+            if self.save_gazette(relurl, download_url, metainfo):
+                relurls.append(relurl)
+
+        return relurls
+
+
+    def get_column_order(self, tr):
+        order = []
+        for td in tr.find_all('th'):
+            txt = utils.get_tag_contents(td)
+            if txt and re.search('Title', txt):
+                order.append('title')
+            elif txt and re.search('Subject', txt):
+                order.append('subject')
+            elif txt and re.search('Date\s+of\s+Publication', txt):
+                order.append('pubdate')
+            elif txt and re.search('Action', txt):
+                order.append('action')
+            else:
+                order.append('')
+        return order
+
+    def process_result_row(self, tr, metainfos, order):
         metainfo = MetaInfo()
-        metainfo.set_gztype('Ordinary')
 
-        metainfo['postdata'] = self.get_form_data(form)
+        i = 0
+        for td in tr.find_all('td'):
+            if len(order) > i:
+                col = order[i]
+                txt = utils.get_tag_contents(td)
+                if txt:
+                    txt = txt.strip()
 
-        span = form.find('span')
-        if span is None:
-            self.logger.warning('Unable to find span')
-            return None
-        txt = utils.get_tag_contents(span)
-        if txt:
-            txt = txt.strip()
-        splits = txt.split('|')
-        splits = [ s.strip() for s in splits if s.strip() != '' ]
-        if len(splits) != 2:
-            self.logger.warning('Unable to parse %s', txt)
-            return None
+                if col == 'title':
+                    metainfo['title'] = txt
+                elif col == 'subject':
+                    metainfo.set_subject(txt)
+                elif col == 'action':
+                    a = td.find('a')
+                    href = a.get('href') if a else None
+                    if href:
+                        metainfo['download_url'] = href
+                elif col == 'pubdate':
+                    pubdate = datetime.datetime.strptime(txt, '%Y-%m-%d').date()
+                    if pubdate is not None:
+                        metainfo.set_date(pubdate)
+            i += 1
 
-        pubdate = self.parse_date(splits[1])
-        if pubdate is None:
-            return None
-        metainfo.set_date(pubdate)
-
-        link = form.find('a')
-        link_txt = utils.get_tag_contents(link)
-        if link_txt:
-            link_txt = link_txt.strip()
-
-        self.enhance_ng_metainfo(link_txt, metainfo)
-
-        return metainfo
+        if 'download_url' in metainfo and 'date' in metainfo:
+            metainfos.append(metainfo)
 
 
-    def process_row_extraordinary(self, form):
-        metainfo = MetaInfo()
-        metainfo.set_gztype('Extraordinary')
-
-        metainfo['postdata'] = self.get_form_data(form)
-
-        span = form.find('span')
-        if span is None:
-            self.logger.warning('Unable to find span')
-            return None
-
-        txt = utils.get_tag_contents(span)
-        if txt:
-            txt = txt.strip()
-
-        splits = txt.split('|')
-        splits = [ s.strip() for s in splits if s.strip() != '' ]
-        if len(splits) != 3:
-            self.logger.warning('Unable to parse %s', txt)
-            return None
-
-
-        pubdate = self.parse_date(splits[2])
-        if pubdate is None:
-            return None
-        metainfo.set_date(pubdate)
-
-        subject = splits[0]
-
-        link = form.find('a')
-        if link is None:
-            self.logger.warning('Unable to find link')
-            return None
-
-        link_txt = utils.get_tag_contents(link)
-        if link_txt:
-            link_txt = link_txt.strip()
-
-        if subject == 'Normal Gazette' or re.search(r'Normal(\s|_)Gazette', link_txt): 
-            metainfo.set_gztype('Ordinary')
-            self.enhance_ng_metainfo(link_txt, metainfo)
-            return metainfo
-
-        filename = None
-        for k, v in metainfo['postdata']:
-            if k == 'filename':
-                filename = v.split('/')[-1].replace('.pdf', '')
-
-        self.enhance_eog_metainfo(filename, link_txt, subject, metainfo)
-
-        return metainfo
-
-
-    def parse_results(self, webpage, pagenum, process_row):
+    def parse_results(self, webpage, pagenum):
         metainfos = []
         has_nextpage = False
 
@@ -266,62 +149,54 @@ class Arunachal(BaseGazette):
             self.logger.warning('Unable to parse the %s page', pagenum)
             return metainfos, has_nextpage
 
-        download_forms = d.find_all('form', {'action': '/download/'})
-        for form in download_forms:
-            metainfo = process_row(form)
-            if metainfo is not None:
-                metainfos.append(metainfo)
+        tables = d.find_all('table')
+        if len(tables) != 1:
+            self.logger.warning('Unable to find results table on page %s', pagenum)
+            return metainfos, has_nextpage
+
+        table = tables[0]
+        order = None
+        for row in table.find_all('tr'):
+            if not order:
+                order = self.get_column_order(row)
+                continue
+
+            self.process_result_row(row, metainfos, order)
 
         page_links = d.find_all('a', {'class': 'page-link'})
         for link in page_links:
             txt = utils.get_tag_contents(link)
-            if txt.strip() == 'Next':
-                has_nextpage = True
+            try:
+                if int(txt.strip()) == pagenum + 1:
+                    has_nextpage = True
+            except Exception:
+                continue
 
         return metainfos, has_nextpage
 
-    def download_metainfos(self, metainfos, fromdate, todate, cookiejar, referer):
-        relurls = []
-        for metainfo in metainfos:
-            issuedate = metainfo.get_date() 
-            if issuedate < fromdate.date() or issuedate > todate.date():
-                continue
 
-            postdata = metainfo.pop('postdata')
-            postdata_dict = dict(postdata)
-            filename = postdata_dict['filename'].split('/')[-1]
-            filename = filename[:-4].lower()
-            filename = filename.replace('.', '-')
-
-
-            relpath = os.path.join(self.name, issuedate.__str__())
-            relurl = os.path.join(relpath, filename)
-            if self.save_gazette(relurl, self.gzurl, metainfo, postdata = postdata, \
-                                 cookiefile = cookiejar, validurl = False, referer = referer):
-                relurls.append(relurl)
-
-        return relurls
-
-
-    def sync_section(self, dls, fromdate, todate, event, process_row, baseurl):
-        cookiejar = CookieJar()
+    def sync_section(self, dls, fromdate, todate, event, menu, submenu, gztype):
         pagenum   = 1
 
         while True:
-            url = baseurl.format(pagenum)
-            response = self.download_url(url, savecookies = cookiejar, loadcookies = cookiejar)
+            url = self.baseurl + (f'?menu={menu}&' + f'submenu={submenu}&' if submenu is not None else '') + f'page={pagenum}' 
+
+            response = self.download_url(url)
             if response is None or response.webpage is None:
                 self.logger.warning('Unable to get data from %s for date %s to date %s', \
-                                    url, fromdate.date(), todate.date())
+                                    self.baseurl, fromdate.date(), todate.date())
                 break
 
             if event.is_set():
                 self.logger.warning('Exiting prematurely as timer event is set')
                 break
 
-            metainfos, has_nextpage = self.parse_results(response.webpage, pagenum, process_row)
+            metainfos, has_nextpage = self.parse_results(response.webpage, pagenum)
+            for metainfo in metainfos:
+                metainfo.set_gztype(gztype)
+                self.enhance_metainfo(metainfo)
 
-            relurls = self.download_metainfos(metainfos, fromdate, todate, cookiejar, url)
+            relurls = self.download_metainfos(metainfos, fromdate, todate)
 
             self.logger.info('Got %d gazettes for pagenum %s', len(relurls), pagenum)
             dls.extend(relurls)
@@ -334,10 +209,13 @@ class Arunachal(BaseGazette):
         dls = []
         self.logger.info('From date %s to date %s', fromdate.date(), todate.date())
 
-        self.sync_section(dls, fromdate, todate, event, self.process_row_ordinary, self.ordinary_url)
-        self.sync_section(dls, fromdate, todate, event, self.process_row_extraordinary, self.extraordinary_url)
+        self.sync_section(dls, fromdate, todate, event, 'Documents', 'Acts / Rules', 'Extraordinary')
+        self.sync_section(dls, fromdate, todate, event, 'Documents', 'Normal Gazette', 'Ordinary')
+        self.sync_section(dls, fromdate, todate, event, 'Documents', 'Extra Ordinary Gazette', 'Extraordinary')
+        #self.sync_section(dls, fromdate, todate, event, 'Documents', 'Archive', 'Ordinary')
 
         return dls
+
 
 if __name__ == '__main__':
     ng_cases = {
