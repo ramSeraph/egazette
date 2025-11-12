@@ -99,6 +99,12 @@ class KarnatakaErajyapatra(BaseGazette):
         self.baseurl      = 'https://erajyapatra.karnataka.gov.in/'
         self.start_date   = datetime.datetime(2020, 1, 1)
         self.result_table = 'ContentPlaceHolder1_dgGeneralUser'
+        
+    def get_session(self):
+        # Override to disable SSL verification
+        s = super().get_session()
+        s.verify = False
+        return s
 
 
     def pop_field(self, postdata, field):
