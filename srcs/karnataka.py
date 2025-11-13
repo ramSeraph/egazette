@@ -11,6 +11,10 @@ from ..utils import utils
 from ..utils.metainfo import MetaInfo
 from .basegazette import BaseGazette
 
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
 class Karnataka(BaseGazette):
     def __init__(self, name, storage):
         BaseGazette.__init__(self, name, storage)
