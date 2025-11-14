@@ -46,7 +46,9 @@ srcinfos = {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of India',
         'category'  : 'Weekly Gazette of India',
-        'prefix'    : 'in.gazette.central.w.' 
+        'prefix'    : 'in.gazette.central.w.',
+        'expected_update_frequency': 10,
+        'expected_delay': 8
     },
     # 'in.gazette.e.<year>.<id>' start_year: 1929 end_year: 2017 count: 108316
     # 'in.gazette.central.e.<year>-<month>-<day>.<id>' start_date: 1986-01-01 end_date: 2025-03-05 count: 121295
@@ -54,7 +56,9 @@ srcinfos = {
         'languages' : ['eng', 'hin'], 
         'source'    : 'Government of India',
         'category'  : 'Extrordinary Gazette of India', 
-        'prefix'    : 'in.gazette.central.e.' 
+        'prefix'    : 'in.gazette.central.e.',
+        'expected_update_frequency': 5,
+        'expected_delay': 5
     },
     # 'in.gazette.bihar.<year>-<month>-<day>.<id>' start_date: 2017-11-24 end_date: 2018-06-22 count: 724
     # 'in.gov.bih.gazette.<year>.<id>' start_year: 2008 end_year: 2018 count: 9789
@@ -66,7 +70,9 @@ srcinfos = {
         'prefix'    : 'in.gov.bih.gazette.',
         'start_date': datetime(2008, 9, 24),
         'identifier_fn': bihar_identifier,
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 20,
+        'expected_delay': 8
     },
     # 'delhi.egaz.<year>.<month_no_pad>.<day_no_pad>' start_date: 1987-01-01, end_date: 2017-09-08 count: 831
     # 'in.gazette.delhi.w.<year>-<month>-<day>.<id>' start_date: 2011-01-06, end_date: 2025-02-13 count: 627
@@ -75,14 +81,18 @@ srcinfos = {
         'source'    : 'Government of NCT of Delhi',
         'category'  : 'Delhi Gazette - Weekly',
         'start_date': datetime(2016, 5, 1),
-        'prefix'    : 'in.gazette.delhi.w.'
+        'prefix'    : 'in.gazette.delhi.w.',
+        'expected_update_frequency': 30,
+        'expected_delay': 32
     },
     # 'in.gazette.delhi.e.<year>-<month>-<day>.<id>' start_date: 2011-01-03, end_date: 2025-03-01 count: 3980
     'delhi_extraordinary' : { 
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of NCT of Delhi',
         'category'  : 'Delhi Gazette - Extrordinary',
-        'prefix'    : 'in.gazette.delhi.e.'
+        'prefix'    : 'in.gazette.delhi.e.',
+        'expected_update_frequency': 10,
+        'expected_delay': 10
     },
     # 'in.gazette.chhattisgarh.weekly.<year>-<month>-<day>.<id>' start_date: 2001-07-06 end_date: 2024-08-09 count: 6094
     'cgweekly' : {
@@ -90,14 +100,18 @@ srcinfos = {
         'source'    : 'Government of Chattisgarh',
         'category'  : 'Chattisgarh Gazette - Weekly',
         'prefix'    : 'in.gazette.chhattisgarh.weekly.',
-        'start_date': datetime(2000, 11, 1)
+        'start_date': datetime(2000, 11, 1),
+        'expected_update_frequency': 10,
+        'expected_delay': 10
     },
     # 'in.gazette.chhattisgarh.eo.<year>-<month>-<day>.<id>' start_date: 2001-01-04 end_date: 2024-08-08 count: 9193
     'cgextraordinary' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Chattisgarh',
         'category'  : 'Chattisgarh Gazette - Extrordinary',
-        'prefix'    : 'in.gazette.chhattisgarh.eo.'
+        'prefix'    : 'in.gazette.chhattisgarh.eo.',
+        'expected_update_frequency': 5,
+        'expected_delay': 10
     },
     # 'in.gazette.andhra.<year>-<month>-<day>.<id>' start_date: 2008-05-22 end_date: 2023-05-03 count: 19184
     'andhra_new' : {
@@ -106,6 +120,8 @@ srcinfos = {
         'category'  : 'Andhra Pradesh Gazette',
         'collection': '',
         'start_date': datetime(2023, 5, 4),
+        'expected_update_frequency': 5,
+        'expected_delay': 3
     },
     'andhraarchive' : { 
         'languages' : ['eng', 'tel'], 
@@ -120,7 +136,9 @@ srcinfos = {
         'start_date': datetime(2008, 6, 1),
         'prefix'    : 'in.gov.andhra.goir.',
         'collection': 'andhra-goir',
-        'type'      : 'goir'
+        'type'      : 'goir',
+        'expected_update_frequency': 1,
+        'expected_delay': 2
     },
     # 'in.gov.karn.gaz.<year>.<month>.<date>' start_date: 2003-09-04 end_date: 2017-09-21 count: 684
     # 'in.gazette.karnataka.<year>-<month>-<day>' start_date: 2009-06-11 end_date: 2018-11-01 count: 463
@@ -139,20 +157,26 @@ srcinfos = {
         'category'  : 'Karnataka Gazette',
         'start_date': datetime(2020, 1, 1),
         'collection': '',
+        'expected_update_frequency': 4,
+        'expected_delay': 4
     },
     # 'in.gazette.maharashtra.<year>-<month>-<day>.<id>' start_date: 2014-01-01 end_date:2023-05-04 count: 17545
     'maharashtra'   : {
         'languages' : ['eng', 'mar'],
         'source'    : 'Government of Maharashtra',
         'category'  : 'Maharashtra Gazette',
-        'start_date': datetime(2010, 1, 1)
+        'start_date': datetime(2010, 1, 1),
+        'expected_update_frequency': 12,
+        'expected_delay': 14
     },
     # 'in.gazette.telangana.<year>-<month>-<day>.<id>' start_date: 2014-06-02 end_date: 2024-07-15 count: 4338
     'telangana' : {
         'languages' : ['eng', 'tel'],
         'source'    : 'Government of Telangana',
         'category'  : 'Telangana Gazette',
-        'start_date': datetime(2014, 1, 1)
+        'start_date': datetime(2014, 1, 1),
+        'expected_update_frequency': 10,
+        'expected_delay': 25
     },
     'telangana_goir' : {
         'languages' : ['eng', 'tel'],
@@ -161,14 +185,18 @@ srcinfos = {
         'start_date': datetime(2014, 6, 2),
         'prefix'    : 'in.gov.telangana.goir.',
         'collection': 'telangana-goir',
-        'type'      : 'goir'
+        'type'      : 'goir',
+        'expected_update_frequency': 5,
+        'expected_delay': 4
     },
     # 'in.gazette.tamilnadu.<year>-<month>-<day>.<id>' start_date: 2008-12-01 end_date: 2025-03-05 count: 13529
     'tamilnadu' : {
         'languages' : ['eng', 'tam'],
         'source'    : 'Government of Tamil Nadu',
         'category'  : 'Tamil Nadu Gazette',
-        'start_date': datetime(2008, 1, 1)
+        'start_date': datetime(2008, 1, 1),
+        'expected_update_frequency': 5,
+        'expected_delay': 10
     },
     # 'in.gazette.odisha.<year>-<month>-<day>.<id>' start_date: 2004-01-10 end_date: 2020-09-07 count: 22693
     'odisha_govpress' : {
@@ -176,20 +204,26 @@ srcinfos = {
         'source'    : 'Government of Odisha',
         'category'  : 'Odisha Gazette',
         'start_date': datetime(2022, 11, 11),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 5,
+        'expected_delay': 15
     },
     'odisha_egaz' : {
         'languages' : ['eng', 'ori'],
         'source'    : 'Government of Odisha',
         'category'  : 'Odisha Gazette',
         'start_date': datetime(2022, 1, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 18,
+        'expected_delay': 20
     },
     # 'in.gazette.jharkhand.<year>-<month>-<day>.<id>' start_date: 2014-01-09 end_date: 2025-02-28 count: count: 8783
     'jharkhand' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Jharkhand',
-        'category'  : 'Jharkhand Gazette'
+        'category'  : 'Jharkhand Gazette',
+        'expected_update_frequency': 10,
+        'expected_delay': 12
     },
     # 'in.gazette.madhya.<year>-<month>-<day>.<gznum>.<gztype>' start_date: 2010-01-01 end_date: 2025-03-07 count:8584
     'madhyapradesh' : {
@@ -198,7 +232,9 @@ srcinfos = {
         'category'  : 'Madhya Pradesh Gazette',
         'prefix'    : 'in.gazette.madhya.',
         'start_date': datetime(2010, 1, 1),
-        'madhyapradesh': madhyapradesh_identifier
+        'madhyapradesh': madhyapradesh_identifier,
+        'expected_update_frequency': 4,
+        'expected_delay': 6
     },
     # 'in.gazette.punjab.<year>-<month>-<day>.<id>' start_date; 2016-01-01 end_date: 2020-04-09 count: 2332
     'punjab' : {
@@ -214,6 +250,8 @@ srcinfos = {
         'source'    : 'Government of Punjab',
         'category'  : 'Punjab Gazette',
         'collection': '',
+        'expected_update_frequency': 5,
+        'expected_delay': 3
     },
     # 'in.gazette.uttarakhand.<year>-<month>-<day>.<id>' start_date: 2013-01-11 end_date: 2024-06-01 count: 611
     'uttarakhand' : {
@@ -222,7 +260,9 @@ srcinfos = {
         'category'  : 'Uttarakhand Gazette',
         'start_date': datetime(2005, 1, 1),
         'collection': '',
-        'prefix'    : 'in.gazette.uttarakhand_new.'
+        'prefix'    : 'in.gazette.uttarakhand_new.',
+        'expected_update_frequency': 20,
+        'expected_delay': 7
     },
     'uttarakhand_gos' : {
         'languages' : ['eng', 'hin'],
@@ -231,14 +271,18 @@ srcinfos = {
         'start_date': datetime(1999, 5, 13),
         'prefix'    : 'in.gov.uttarakhand.go.',
         'collection': 'uttarakhand-gos',
-        'type'      : 'goir'
+        'type'      : 'goir',
+        'expected_update_frequency': 5,
+        'expected_delay': 20
     },
     'himachal' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Himachal Pradesh',
         'category'  : 'Himachal Pradesh Gazette',
         'start_date': datetime(2007, 8, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 7,
+        'expected_delay': 4
     },
     'himachalarchive' : {
         'languages' : ['eng', 'hin'],
@@ -252,7 +296,9 @@ srcinfos = {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Haryana',
         'category'  : 'Haryana Gazette',
-        'start_date': datetime(2014, 1, 1)
+        'start_date': datetime(2014, 1, 1),
+        'expected_update_frequency': 7,
+        'expected_delay': 6
     },
     # 'in.gazette.haryanaarch.<year>-<month>-<day>.<id>' start_date: 1958-12-10 end_date: 2017-12-25 count: 47693
     'haryanaarchive' : {
@@ -279,7 +325,9 @@ srcinfos = {
         'source'    : 'Government of Kerala',
         'category'  : 'Kerala Gazette',
         'prefix'    : 'in.gazette.keralacompose.',
-        'start_date': datetime(2021, 10, 2)
+        'start_date': datetime(2021, 10, 2),
+        'expected_update_frequency': 4,
+        'expected_delay': 2
     },
     # 'gazette.stgeorge.TG<year>.TG<year><month_text3_caps><day><type>?' start_date: 1908-07-07 end_date: 1943-02-23 count: 1924
     'stgeorge' : {
@@ -308,7 +356,9 @@ srcinfos = {
         'category'  : 'Goa Gazette',
         'prefix'    : 'in.goa.egaz.',
         'start_date': datetime(1908, 1, 1),
-        'identifier_fn': goa_identifier
+        'identifier_fn': goa_identifier,
+        'expected_update_frequency': 8,
+        'expected_delay': 7
     },
     # 'in.gazette.csl_weekly.<year>-<month>-<day>.<id>' start_date: 1922-01-28 end_date: 1997-12-29 count: 13855
     'csl_weekly' : { 
@@ -337,42 +387,54 @@ srcinfos = {
         'source'    : 'Government of Nagaland',
         'category'  : 'Nagaland Gazette',
         'start_date': datetime(2017, 1, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 25,
+        'expected_delay': 60
     },
     'lakshadweep' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Lakshadweep Administration',
         'category'  : 'Lakshadweep Gazette',
         'start_date': datetime(2016, 1, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 20,
+        'expected_delay': 25
     },
     'dadranagarhaveli': {
         'languages' : ['eng', 'hin', 'guj'],
         'source'    : 'Dadra And Nagar Haveli And Daman And Diu Administration',
         'category'  : 'Gazette of DNH And DD',
         'start_date': datetime(2021, 1, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 15,
+        'expected_delay': 30
     },
     'puducherry' : {
         'languages' : ['eng', 'tam', 'fre'],
         'source'    : 'Government of Puducherry',
         'category'  : 'Puducherry Gazette',
         'start_date': datetime(2011, 1, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 10,
+        'expected_delay': 10
     },
     'ladakh' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Ladakh Administration',
         'category'  : 'Ladakh Gazette',
         'start_date': datetime(2020, 9, 18),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 20,
+        'expected_delay': 18
     },
     'jammuandkashmir' : {
         'languages' : ['eng', 'urd'],
         'source'    : 'Government of Jammu and Kashmir',
         'category'  : 'Jammu and Kashmir Gazette',
         'start_date': datetime(2014, 1, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 10,
+        'expected_delay': 12
     },
     'arunachal' : {
         'languages' : ['eng'],
@@ -381,7 +443,9 @@ srcinfos = {
         #'start_date': datetime(2020, 1, 1),
         'start_date': datetime(2025, 7, 1),
         'identifier_fn': truncated_identifier,
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 15,
+        'expected_delay': 30
     },
     'assam' : {
         'languages' : ['eng', 'asm'],
@@ -389,7 +453,9 @@ srcinfos = {
         'category'  : 'Assam Gazette',
         'start_date': datetime(2016, 1, 1),
         'identifier_fn': truncated_identifier,
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 10,
+        'expected_delay': 30
     },
     'meghalaya' : {
         'languages' : ['eng'],
@@ -397,7 +463,8 @@ srcinfos = {
         'category'  : 'Meghalaya Gazette',
         'start_date': datetime(2006, 3, 1),
         'collection': '',
-        'expected_delay': 120
+        'expected_update_frequency': 15,
+        'expected_delay': 105
     },
     'mizoram' : {
         'languages' : ['eng', 'lus'],
@@ -412,7 +479,9 @@ srcinfos = {
         'category'  : 'Sikkim Gazette',
         'start_date': datetime(1975, 9, 8),
         'identifier_fn': truncated_identifier,
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 30,
+        'expected_delay': 32
     },
     'tripura_new' : {
         'languages' : ['eng'],
@@ -420,35 +489,45 @@ srcinfos = {
         'category'  : 'Tripura Gazette',
         # 'start_date': datetime(2018, 1, 1), for the previous verison of the source
         'start_date': datetime(2025, 8, 30),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 10,
+        'expected_delay': 14
     },
     'rajasthan' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Rajasthan',
         'category'  : 'Rajasthan Gazette',
         'start_date': datetime(2019, 4, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 5,
+        'expected_delay': 5
     },
     'gujarat' : {
         'languages' : ['eng', 'guj'],
         'source'    : 'Government of Gujarat',
         'category'  : 'Gujarat Gazette',
         'start_date': datetime(1991, 1, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 3,
+        'expected_delay': 5
     },
     'uttarpradesh' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Government of Uttar Pradesh',
         'category'  : 'Uttar Pradesh Gazette',
         'start_date': datetime(2018, 12, 21),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 10,
+        'expected_delay': 14
     },
     'chandigarh' : {
         'languages' : ['eng', 'hin'],
         'source'    : 'Chandigarh Administration',
         'category'  : 'Chandigarh Gazette',
         'start_date': datetime(2019, 10, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 8,
+        'expected_delay': 5
     },
     'manipur' : {
         'languages' : ['eng'],
@@ -457,7 +536,9 @@ srcinfos = {
         # start date for the older website
         #'start_date': datetime(2010, 4, 1),
         'start_date': datetime(2025, 8, 1),
-        'collection': ''
+        'collection': '',
+        'expected_update_frequency': 7,
+        'expected_delay': 6
     },
     'rsa' : {
         'languages' : ['eng', 'hin'],
