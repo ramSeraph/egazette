@@ -46,7 +46,7 @@ runs:
           prefix=$(uv run python -c "from srcs.datasrcs_info import get_prefix; print(get_prefix('$srcname', to_sandbox=False))")
           known_delay=$(uv run python -c "from srcs.datasrcs_info import get_expected_delay; print(get_expected_delay('$srcname'))")
           from_date_ia=$(uvx --from internetarchive ia search $prefix --sort 'date desc' -f date --parameters="page=1&rows=1" | jq -r .date)
-          cutoff=$(( known_delay * 2 ))
+          cutoff=$(( known_delay * 1 ))
         
           from_date=''
           days_ago=''
@@ -73,7 +73,7 @@ runs:
 
           from_date_added_ia=$(uvx --from internetarchive ia search ${prefix} --sort 'addeddate desc' -f addeddate --parameters="page=1&rows=1" | jq -r .addeddate)
           known_update_frequency=$(uv run python -c "from srcs.datasrcs_info import get_expected_update_frequency; print(get_expected_update_frequency('$srcname'))")
-          cutoff=$(( known_update_frequency * 2 ))
+          cutoff=$(( known_update_frequency * 1 ))
           from_date=''
           days_ago=''
           if [[ $from_date_added_ia != '' ]]; then
