@@ -53,6 +53,24 @@ def fix_special_cases(metainfo):
         metainfo['gznum'] = '72'
         del metainfo['title']
 
+    elif title == 'Affidavits regarding Change of Name & Corrections recieved from Individuals, Gazette Vol.LXI No. 35' and upload_date == '2025-11-04':
+        metainfo.set_date(datetime.datetime(2025, 11, 1).date())
+        metainfo['volume_num'] = 'LXI'
+        metainfo['gznum'] = '35'
+        del metainfo['title']
+
+    elif title == 'Notification regarding Constitution of State Level Committee for Wood Based Industries (Dept. of Environment & Forest), Gazette Vol. LXI No.34' and upload_date == '2025-11-04':
+        metainfo.set_date(datetime.datetime(2025, 10, 31).date())
+        metainfo['volume_num'] = 'LXI'
+        metainfo['gznum'] = '34'
+        del metainfo['title']
+
+    elif title == 'Re-Publication of notification for conduct of pre-test of first phase of population Census-2027 and Notifcation regarding designation of Kavaratti Police Station as the Nodal Cyber Police Station and Superintendent of Police, Lakshadweep as the Nodal' and upload_date == '2025-11-04':
+        metainfo.set_date(datetime.datetime(2025, 10, 27).date())
+        metainfo['volume_num'] = 'LXI'
+        metainfo['gznum'] = '33'
+        del metainfo['title']
+
 class Lakshadweep(BaseGazette):
     def __init__(self, name, storage):
         BaseGazette.__init__(self, name, storage)
