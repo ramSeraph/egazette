@@ -262,7 +262,7 @@ srcinfos = {
         'collection': '',
         'prefix'    : 'in.gazette.uttarakhand_new.',
         'expected_update_frequency': 20,
-        'expected_delay': 7
+        'expected_delay': 15
     },
     'uttarakhand_gos' : {
         'languages' : ['eng', 'hin'],
@@ -464,7 +464,7 @@ srcinfos = {
         'start_date': datetime(2006, 3, 1),
         'collection': '',
         'expected_update_frequency': 15,
-        'expected_delay': 105
+        'expected_delay': 120
     },
     'mizoram' : {
         'languages' : ['eng', 'lus'],
