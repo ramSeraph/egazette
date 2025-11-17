@@ -232,7 +232,8 @@ srcinfos = {
         'category'  : 'Madhya Pradesh Gazette',
         'prefix'    : 'in.gazette.madhya.',
         'start_date': datetime(2010, 1, 1),
-        'madhyapradesh': madhyapradesh_identifier,
+        'collection': '',
+        'identifier_fn': madhyapradesh_identifier,
         'expected_update_frequency': 4,
         'expected_delay': 6
     },
