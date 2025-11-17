@@ -77,19 +77,14 @@ class Nagaland(BaseGazette):
                 if d is None:
                     continue
 
-                article = d.find('article')
-                if not article:
-                    self.logger.warning('No article found in %s', page_url)
+                obj = d.find('object')
+                if not obj:
+                    self.logger.warning('No object found in %s', page_url)
                     continue
 
-                link = article.find('a')
-                if link is None:
-                    self.logger.warning('No link found in article in %s', page_url)
-                    continue
-
-                gzurl = link.get('href')
+                gzurl = obj.get('data')
                 if not gzurl:
-                    self.logger.warning('No href found for link in article in %s', page_url)
+                    self.logger.warning('No href found for link in object in %s', page_url)
                     continue
 
                 gzurl = urllib.parse.urljoin(curr_url, gzurl)
