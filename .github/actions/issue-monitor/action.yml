@@ -95,14 +95,12 @@ runs:
             echo "Violation detected for $srcname"
             
             # Create issue body file
-            cat > violations/${srcname}.md <<'EOFINNER'
-## Source Status Alert: ${srcname}
-
-This issue tracks the status of **${srcname}** which has exceeded the expected thresholds.
-
-### Status Details
-
-EOFINNER
+            echo "## Source Status Alert: ${srcname}" > violations/${srcname}.md
+            echo "" >> violations/${srcname}.md
+            echo "This issue tracks the status of **${srcname}** which has exceeded the expected thresholds." >> violations/${srcname}.md
+            echo "" >> violations/${srcname}.md
+            echo "### Status Details" >> violations/${srcname}.md
+            echo "" >> violations/${srcname}.md
             
             if [[ "$has_date_violation" == "true" ]]; then
               echo "**⚠️ Document Date Violation:**" >> violations/${srcname}.md
@@ -116,17 +114,15 @@ EOFINNER
               echo "" >> violations/${srcname}.md
             fi
             
-            cat >> violations/${srcname}.md <<'EOFINNER'
-### Archive Details
-
-- **Prefix:** \`${prefix}\`
-- **Expected Document Delay:** ${known_delay} days
-- **Expected Update Frequency:** ${known_update_frequency} days
-
----
-*This issue is automatically created and managed by the status monitor workflow.*
-*Last checked: $(date -u +"%Y-%m-%d %H:%M:%S UTC")*
-EOFINNER
+            echo "### Archive Details" >> violations/${srcname}.md
+            echo "" >> violations/${srcname}.md
+            echo "- **Prefix:** \`${prefix}\`" >> violations/${srcname}.md
+            echo "- **Expected Document Delay:** ${known_delay} days" >> violations/${srcname}.md
+            echo "- **Expected Update Frequency:** ${known_update_frequency} days" >> violations/${srcname}.md
+            echo "" >> violations/${srcname}.md
+            echo "---" >> violations/${srcname}.md
+            echo "*This issue is automatically created and managed by the status monitor workflow.*" >> violations/${srcname}.md
+            echo "*Last checked: $(date -u +"%Y-%m-%d %H:%M:%S UTC")*" >> violations/${srcname}.md
             
             violations_json=$(echo "$violations_json" | jq --arg src "$srcname" '. + [$src]')
           fi
