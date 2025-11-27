@@ -107,13 +107,13 @@ class Uttarakhand(BaseGazette):
         self.base_endp   = 'en/Search/index'
         self.search_endp = 'en/Search/SearchGazette'
 
-    def get_postdata(self, dateobj):
+    def get_postdata(self, dateobj, section):
         date_str = dateobj.strftime('%Y-%m-%d')
         postdata = {
             'BhagID': "",
             'CategoryID': "",
             'DepartmentID': "",
-            'EntryType': 2,
+            'EntryType': 2 if section == 'Weekly' else 1,
             'GONo': "",
             'SearchText': "",
             'SectionID': "",
@@ -124,7 +124,7 @@ class Uttarakhand(BaseGazette):
         }
         return json.dumps(postdata).encode('utf8')
 
-    def get_metainfo(self, x):
+    def get_metainfo(self, x, section):
         metainfo = MetaInfo()
 
         def get_val(k):
@@ -146,14 +146,15 @@ class Uttarakhand(BaseGazette):
         metainfo['notification_num']  = x['GONO']
         metainfo['notification_date'] = datetime.strptime(x['GoDate2'], '%d-%m-%Y').strftime('%Y-%m-%d')
         metainfo['pageno'] = x['PageNo']
+        if section == 'Daily':
+            metainfo['gztype'] = 'Extraordinary'
 
         if not metainfo['url']:
             metainfo['url'] = x['File_Path_Word']
 
         return metainfo
 
-    def download_oneday(self, relpath, dateobj):
-        dls = []
+    def download_onesection(self, dls, relpath, dateobj, section):
 
         cookiejar = CookieJar()
         baseurl   = urllib.parse.urljoin(self.baseurl, self.base_endp)
@@ -165,7 +166,7 @@ class Uttarakhand(BaseGazette):
 
         searchurl = urllib.parse.urljoin(self.baseurl, self.search_endp)
 
-        postdata = self.get_postdata(dateobj)
+        postdata = self.get_postdata(dateobj, section)
 
         accept_hdr = {'Content-Type': 'application/json'}
         response = self.download_url(searchurl, postdata = postdata, \
@@ -184,7 +185,7 @@ class Uttarakhand(BaseGazette):
 
         metainfos_by_url = {}
         for d in x: 
-            metainfo = self.get_metainfo(d)
+            metainfo = self.get_metainfo(d, section)
             url = metainfo.pop('url')
             if url not in metainfos_by_url:
                 metainfos_by_url[url] = []
@@ -212,6 +213,14 @@ class Uttarakhand(BaseGazette):
 
             if self.save_gazette(relurl, gzurl, new_meta):
                 dls.append(relurl)
+
+        return dls
+
+    def download_oneday(self, relpath, dateobj):
+        dls = []
+
+        self.download_onesection(dls, relpath, dateobj, section='Daily')
+        self.download_onesection(dls, relpath, dateobj, section='Weekly')
 
         return dls
 
