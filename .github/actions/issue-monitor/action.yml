@@ -127,6 +127,8 @@ runs:
             violations_json=$(echo "$violations_json" | jq --arg src "$srcname" '. + [$src]')
           fi
         done
+
+        violations_json=$(echo "$violations_json" | jq --indent 0 .)
         
         echo "violations=$violations_json" >> $GITHUB_OUTPUT
         echo "Violations detected: $violations_json"
