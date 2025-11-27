@@ -146,8 +146,7 @@ class Uttarakhand(BaseGazette):
         metainfo['notification_num']  = x['GONO']
         metainfo['notification_date'] = datetime.strptime(x['GoDate2'], '%d-%m-%Y').strftime('%Y-%m-%d')
         metainfo['pageno'] = x['PageNo']
-        if section == 'Daily':
-            metainfo['gztype'] = 'Extraordinary'
+        metainfo['section'] = section
 
         if not metainfo['url']:
             metainfo['url'] = x['File_Path_Word']
