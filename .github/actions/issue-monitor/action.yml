@@ -1,0 +1,153 @@
+name: Issue Monitor for Source Status
+
+inputs:
+  branch:
+    description: 'which branch to run on'
+    required: false
+    type: string
+    default: 'workspace'
+  github_token:
+    description: 'GitHub token for creating issues'
+    required: true
+
+outputs:
+  violations:
+    description: 'JSON string of sources with violations'
+    value: ${{ steps.check-violations.outputs.violations }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4.1.7
+      with:
+        ref: ${{ inputs.branch }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    - name: Check for violations
+      id: check-violations
+      shell: bash
+      run: |
+        
+        days_from_today() {
+          input_date=$(date -d "${1}" +%s)
+          today=$(date +%s)
+          diff_seconds=$((today - input_date))
+          days=$((diff_seconds / 86400))
+          echo $days
+        }
+        
+        mkdir -p violations
+        violations_json="[]"
+        
+        srcnames="$(uv run python -c "from srcs.datasrcs_info import srcinfos; names = [ print(k) for k, v in srcinfos.items() if v.get('enabled', True) ]")"
+        
+        for srcname in $srcnames
+        do
+          prefix=$(uv run python -c "from srcs.datasrcs_info import get_prefix; print(get_prefix('$srcname', to_sandbox=False))")
+          known_delay=$(uv run python -c "from srcs.datasrcs_info import get_expected_delay; print(get_expected_delay('$srcname'))")
+          known_update_frequency=$(uv run python -c "from srcs.datasrcs_info import get_expected_update_frequency; print(get_expected_update_frequency('$srcname'))")
+          
+          # Check last document date
+          from_date_ia=$(uvx --from internetarchive ia search $prefix --sort 'date desc' -f date --parameters="page=1&rows=1" | jq -r .date)
+          date_cutoff=$(( known_delay * 1 ))
+          
+          # Check last update (addeddate)
+          from_date_added_ia=$(uvx --from internetarchive ia search ${prefix} --sort 'addeddate desc' -f addeddate --parameters="page=1&rows=1" | jq -r .addeddate)
+          update_cutoff=$(( known_update_frequency * 1 ))
+          
+          has_date_violation=false
+          has_update_violation=false
+          date_info=""
+          update_info=""
+          
+          if [[ $from_date_ia != '' ]]; then
+            from_date="$(date -d "$from_date_ia" +%Y-%m-%d)"
+            days_ago=$(days_from_today $from_date_ia)
+            
+            if [[ $days_ago -gt $date_cutoff ]]; then
+              has_date_violation=true
+              date_info="Latest document from $from_date ($days_ago days ago, threshold: $date_cutoff days)"
+            fi
+          else
+            has_date_violation=true
+            date_info="No documents found in archive"
+          fi
+          
+          if [[ $from_date_added_ia != '' ]]; then
+            from_date_added="$(date -d "$from_date_added_ia" +%Y-%m-%d)"
+            days_ago_added=$(days_from_today $from_date_added_ia)
+            
+            if [[ $days_ago_added -gt $update_cutoff ]]; then
+              has_update_violation=true
+              update_info="Last archive update on $from_date_added ($days_ago_added days ago, threshold: $update_cutoff days)"
+            fi
+          else
+            has_update_violation=true
+            update_info="No update date found in archive"
+          fi
+          
+          # If either violation exists, record it
+          if [[ "$has_date_violation" == "true" || "$has_update_violation" == "true" ]]; then
+            echo "Violation detected for $srcname"
+            
+            # Create issue body file
+            cat > violations/${srcname}.md <<'EOFINNER'
+## Source Status Alert: ${srcname}
+
+This issue tracks the status of **${srcname}** which has exceeded the expected thresholds.
+
+### Status Details
+
+EOFINNER
+            
+            if [[ "$has_date_violation" == "true" ]]; then
+              echo "**⚠️ Document Date Violation:**" >> violations/${srcname}.md
+              echo "- $date_info" >> violations/${srcname}.md
+              echo "" >> violations/${srcname}.md
+            fi
+            
+            if [[ "$has_update_violation" == "true" ]]; then
+              echo "**⚠️ Update Frequency Violation:**" >> violations/${srcname}.md
+              echo "- $update_info" >> violations/${srcname}.md
+              echo "" >> violations/${srcname}.md
+            fi
+            
+            cat >> violations/${srcname}.md <<'EOFINNER'
+### Archive Details
+
+- **Prefix:** \`${prefix}\`
+- **Expected Document Delay:** ${known_delay} days
+- **Expected Update Frequency:** ${known_update_frequency} days
+
+---
+*This issue is automatically created and managed by the status monitor workflow.*
+*Last checked: $(date -u +"%Y-%m-%d %H:%M:%S UTC")*
+EOFINNER
+            
+            violations_json=$(echo "$violations_json" | jq --arg src "$srcname" '. + [$src]')
+          fi
+        done
+        
+        echo "violations=$violations_json" >> $GITHUB_OUTPUT
+        echo "Violations detected: $violations_json"
+
+    - name: Output violations
+      shell: bash
+      run: |
+        if [[ -d violations ]]; then
+          echo "Issue bodies created:"
+          ls -la violations/
+          cat violations/*.md 2>/dev/null || echo "No violation files"
+        fi
+    
+    - name: Upload violation files
+      if: steps.check-violations.outputs.violations != '[]'
+      uses: actions/upload-artifact@v4
+      with:
+        name: violations
+        path: violations/
+        retention-days: 1
