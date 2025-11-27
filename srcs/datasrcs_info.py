@@ -290,7 +290,8 @@ srcinfos = {
         'source'    : 'Government of Himachal Pradesh',
         'category'  : 'Himachal Pradesh Gazette',
         'start_date': datetime(1953, 11, 28),
-        'collection': ''
+        'collection': '',
+        'enabled'   : False
     },
     # 'in.gazette.haryana.<year>-<month>-<day>.<id>' start_date: 2014-10-27 end_date: 2025-03-06 count: 14106
     'haryana' : {
@@ -546,7 +547,8 @@ srcinfos = {
         'source'    : 'Rajasthan State Secretariat',
         'category'  : 'Rajasthan State Archive',
         'collection': '',
-        'prefix'    : 'in.rajastahan.state.archive.'
+        'prefix'    : 'in.rajastahan.state.archive.',
+        'enabled'   : False
     },
 }
 
