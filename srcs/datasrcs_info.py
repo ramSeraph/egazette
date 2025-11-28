@@ -263,7 +263,7 @@ srcinfos = {
         'collection': '',
         'prefix'    : 'in.gazette.uttarakhand_new.',
         'expected_update_frequency': 20,
-        'expected_delay': 15
+        'expected_delay': 20
     },
     'uttarakhand_gos' : {
         'languages' : ['eng', 'hin'],
