@@ -43,6 +43,7 @@ from . import gujarat
 from . import uttarpradesh
 from . import chandigarh
 from . import manipur
+from . import westbengal
 
 from . import rsa
 
@@ -102,6 +103,7 @@ srcdict = { \
 'uttarpradesh'         : uttarpradesh.UttarPradesh, \
 'chandigarh'           : chandigarh.Chandigarh, \
 'manipur'              : manipur.ManipurNew, \
+'westbengal_wbsl'      : westbengal.KolkataWBSL, \
 'rsa'                  : rsa.RajasthanStateArchive, \
 }
 

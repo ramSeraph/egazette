@@ -243,6 +243,11 @@ class MetaInfo(dict):
         return self.get_ia_goir_description(srcinfo)
 
     def get_ia_gazette_title(self, srcinfo):
+        # If title field exists, use it directly
+        custom_title = self.get('title', None)
+        if custom_title is not None:
+            return custom_title
+        
         category = srcinfo['category']
         title = [category]
 

@@ -550,6 +550,13 @@ srcinfos = {
         'prefix'    : 'in.rajastahan.state.archive.',
         'enabled'   : False
     },
+    'westbengal_wbsl' : {
+        'languages' : ['eng', 'ben', 'urd'],
+        'source'    : 'Government of West Bengal',
+        'category'  : 'The Kolkata Gazette',
+        'start_date': datetime(1830, 1, 1),
+        'collection': ''
+    },
 }
 
 def get_prefix(srcname, to_sandbox=False):
