@@ -530,8 +530,8 @@ class KolkataWBSL(BaseGazette):
         from_year = fromdate.year
         to_year   = todate.year
         
-        self.logger.info('Syncing %s from %s to %s (years %d-%d)', 
-                         self.gazette_name, fromdate, todate, from_year, to_year)
+        self.logger.info('Syncing from %s to %s (years %d-%d)', 
+                         fromdate, todate, from_year, to_year)
         
         # Establish session by visiting main page first
         cookiejar = CookieJar()
