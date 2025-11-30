@@ -73,6 +73,20 @@ class WBSL(KolkataWBSL):
             metainfo['bookheadno'] = entry.get('bookheadno').strip()
         
         return metainfo
+    
+    def save_gazette(self, relurl, gurl, metainfo, postdata=None, referer=None, 
+                     cookiefile=None, validurl=True, min_size=0, count=0, 
+                     hdrs={}, encodepost=True):
+        """Override to use source_url instead of url"""
+        # Set source_url before calling parent
+        if validurl:
+            metainfo['source_url'] = self.url_fix(gurl)
+        
+        # Call parent without setting url
+        return super().save_gazette(relurl, gurl, metainfo, postdata=postdata, 
+                                   referer=referer, cookiefile=cookiefile, 
+                                   validurl=False, min_size=min_size, 
+                                   count=count, hdrs=hdrs, encodepost=encodepost)
 
     def get_calcutta_cache_file(self):
         """Get path to cached Calcutta Gazette list"""
