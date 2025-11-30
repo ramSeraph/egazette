@@ -533,7 +533,7 @@ srcinfos = {
         'start_date': datetime(2019, 10, 1),
         'collection': '',
         'expected_update_frequency': 8,
-        'expected_delay': 5
+        'expected_delay': 8
     },
     'manipur' : {
         'languages' : ['eng'],
