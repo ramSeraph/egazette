@@ -42,6 +42,8 @@ fi
 
 if [[ $PREFIX_TO_REMOVE != '' ]]; then
   uvx --from internetarchive ia search "identifier:${prefix}* AND date:[$from_date_rev TO $to_date_rev]" -i | sed "s/^${PREFIX_TO_REMOVE}//" > $output_file
+  uvx --from internetarchive ia search "identifier:${prefix}* AND NOT date:*" -i | sed "s/^${PREFIX_TO_REMOVE}//" >> $output_file
 else
   uvx --from internetarchive ia search "identifier:${prefix}* AND date:[$from_date_rev TO $to_date_rev]" -i > $output_file
+  uvx --from internetarchive ia search "identifier:${prefix}* AND NOT date:*" -i >> $output_file
 fi
