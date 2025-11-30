@@ -68,6 +68,10 @@ class WBSL(KolkataWBSL):
         if entry.get('description'):
             metainfo['description'] = entry.get('description').strip()
         
+        # Add bookheadno if available and not N.A.
+        if entry.get('bookheadno') and entry.get('bookheadno') != 'N.A.':
+            metainfo['bookheadno'] = entry.get('bookheadno').strip()
+        
         return metainfo
 
     def get_calcutta_cache_file(self):
