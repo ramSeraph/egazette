@@ -38,6 +38,10 @@ def truncated_identifier(relurl, metainfo, prefix_len):
         identifier = identifier[:100-prefix_len]
     return identifier
 
+def wbsl_identifier(relurl, metainfo, prefix_len):
+    bookid = metainfo.get('bookid')
+    return bookid
+
 srcinfos = {
     # 'in.gazette.<year>.<id>' start_year: 1922 end_year: 2017 count: 36003
     # 'in.gazette.central_weekly.<year>-<month>-<day>.<id>' start_date: 2018-09-06 end_date: 2018-09-06 count: 1
@@ -556,6 +560,14 @@ srcinfos = {
         'category'  : 'The Kolkata Gazette',
         'start_date': datetime(1830, 1, 1),
         'collection': ''
+    },
+    'wbsl' : {
+        'languages' : ['eng', 'ben', 'urd', 'fre', 'ita'],
+        'category'  : 'West Bengal Secretariat Library Archive',
+        'start_date': datetime(1742, 1, 1),
+        'collection': '',
+        'prefix'    : 'wbsl.',
+        'identifier_fn': wbsl_identifier
     },
 }
 

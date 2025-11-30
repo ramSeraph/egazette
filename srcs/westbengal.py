@@ -41,15 +41,18 @@ class KolkataWBSL(BaseGazette):
         s.verify = False
         return s
 
-    def extract_year_from_title(self, title):
-        # Look for 4-digit year in title
+    def extract_year_from_text(self, text):
+        """Extract year from any text field"""
+        if not text:
+            return None
+        # Look for 4-digit year in text
         year_patterns = [
             r'\b(1[89]\d{2})\b',  # 1800-1999
             r'\b(20[0-2]\d)\b',   # 2000-2029
         ]
         
         for pattern in year_patterns:
-            match = re.search(pattern, title)
+            match = re.search(pattern, text)
             if match:
                 year = int(match.group(1))
                 if 1800 <= year <= 2100:
@@ -57,38 +60,44 @@ class KolkataWBSL(BaseGazette):
         
         return None
 
+    def extract_year_from_title(self, title):
+        """Deprecated: use extract_year_from_text instead"""
+        return self.extract_year_from_text(title)
+
     def parse_result(self, entry):
         metainfo = MetaInfo()
         
         title = entry.get('title', '').strip()
         
-        # Get year - try copyrightdate first, then extract from title
+        # Get year - try multiple sources in order of preference
         year_str = entry.get('copyrightdate', '0000')
         try:
             year = int(year_str)
             if year < 1800 or year > 2100:
-                year = self.extract_year_from_title(title)
-                if year is None:
-                    self.logger.warning('Could not extract valid year from: %s', title)
-                    return None
+                year = None
         except (ValueError, TypeError):
-            year = self.extract_year_from_title(title)
-            if year is None:
-                self.logger.warning('Could not extract valid year from: %s', title)
-                return None
+            year = None
         
-        # Store year (not exact date since we don't have it)
-        metainfo['year'] = year
+        # If copyrightdate is invalid, try extracting from title and filename
+        if year is None:
+            year = self.extract_year_from_text(title)
+            if year is None:
+                year = self.extract_year_from_text(entry.get('filename', ''))
+
+        if year is None:
+            self.logger.warning('Could not extract valid year from: %s', title)
+        else:
+            metainfo['year'] = year
         
         # Store the original book title
         metainfo['title'] = title
         metainfo['bookid'] = str(entry.get('bookid'))
         
-        if entry.get('publisher'):
+        if entry.get('publisher') and entry.get('publisher') != 'N.A.':
             metainfo['publisher'] = entry.get('publisher')
         
         if entry.get('creator') and entry.get('creator') != 'N.A.':
-            metainfo['author'] = entry.get('creator')
+            metainfo['creator'] = entry.get('creator')
         
         if entry.get('language'):
             metainfo['language'] = entry.get('language')
@@ -135,7 +144,7 @@ class KolkataWBSL(BaseGazette):
         """Get path to cached gazette list"""
         # Use storage manager's base directory
         basedir = os.path.dirname(self.storage_manager.rawdir)
-        cache_dir = os.path.join(basedir, self.name, 'temp', 'wbsl_cache')
+        cache_dir = os.path.join(basedir, 'temp', self.name, 'wbsl_cache')
         os.makedirs(cache_dir, exist_ok=True)
         return os.path.join(cache_dir, 'gazette_list.json')
 
@@ -253,7 +262,7 @@ class KolkataWBSL(BaseGazette):
         """Get persistent cache directory for book images"""
         # Use storage manager's base directory
         basedir = os.path.dirname(self.storage_manager.rawdir)
-        cache_base = os.path.join(basedir, self.name, 'temp', 'wbsl_images')
+        cache_base = os.path.join(basedir, 'temp', self.name, 'wbsl_images')
         os.makedirs(cache_base, exist_ok=True)
         
         book_cache = os.path.join(cache_base, str(bookid))
@@ -500,14 +509,14 @@ class KolkataWBSL(BaseGazette):
             
             gazette_year = metainfo.get('year')
             
-            # Filter by year range
-            if gazette_year < from_year or gazette_year > to_year:
+            # Filter by year range (allow None to pass when from_year is 1500)
+            if gazette_year is not None and (gazette_year < from_year or gazette_year > to_year):
                 continue
             
             bookid = metainfo['bookid']
             title = metainfo['title']
             
-            self.logger.info('Processing: [%s] %s (Year %d)', bookid, title[:60], gazette_year)
+            self.logger.info('Processing: [%s] %s (Year %s)', bookid, title[:60], gazette_year or 'Unknown')
             
             # Construct the book reader URL
             gzurl = f'{self.bookreader_url}?bookId={bookid}'

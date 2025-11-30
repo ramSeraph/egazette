@@ -291,10 +291,19 @@ class MetaInfo(dict):
         return self.get_ia_goir_title(srcinfo)
 
     def get_ia_metadata(self, srcinfo, to_sandbox):
-        creator   = srcinfo['source']
+        creator   = srcinfo.get('source')
         category  = srcinfo['category']
-        languages = srcinfo['languages']
         srctype   = srcinfo.get('type', 'gazette')
+        
+        # Allow metainfo to override language from srcinfo
+        # If metainfo has 'language' field, use it; otherwise use srcinfo languages
+        if 'language' in self:
+            languages = self.get('language')
+            # Convert to list if it's a string
+            if isinstance(languages, str):
+                languages = [languages]
+        else:
+            languages = srcinfo['languages']
 
         if to_sandbox:
             collection = 'test_collection'
@@ -303,11 +312,19 @@ class MetaInfo(dict):
 
         title = self.get_ia_title(srctype, srcinfo)
 
+        # Use creator from metainfo if available, otherwise use source
+        metainfo_creator = self.get('creator', None)
+        if metainfo_creator is not None and metainfo_creator.strip():
+            creator = metainfo_creator.strip()
+        
         metadata = { \
             'mediatype' : 'texts', 'language' : languages, \
-            'title'     : title,   'creator'  : creator, \
+            'title'     : title, \
             'subject'   : category
         }
+        
+        if creator:
+            metadata['creator'] = creator
 
         if collection != '':
             metadata['collection'] = collection
@@ -319,6 +336,10 @@ class MetaInfo(dict):
             year = self.get('year', None)
             if year is not None:
                 metadata['date'] = f'{year}'
+        
+        publisher = self.get('publisher', None)
+        if publisher is not None and publisher.strip():
+            metadata['publisher'] = publisher.strip()
         
         metadata['description'] = self.get_ia_description(srctype, srcinfo)
 
