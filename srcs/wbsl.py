@@ -240,6 +240,9 @@ class WBSL(KolkataWBSL):
         
         # Get Calcutta Gazette bookids to filter out
         calcutta_bookids = self.get_calcutta_bookids(cookiejar, event)
+
+        # add a known problematic book to ignore
+        calcutta_bookids.add('8951')
         
         # Parse all gazette entries from eArchive (from cache or server)
         all_entries = self.get_results(cookiejar, curr_url, event)
