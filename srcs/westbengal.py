@@ -401,8 +401,8 @@ class KolkataWBSL(BaseGazette):
         
         # Build image URLs and download all pages
         # URL-encode the title_path to handle special characters like apostrophes, commas, spaces
-        encoded_title_path = urllib.parse.quote(title_path)
-        base_url = f'https://wbsl.gov.in/Books/{disk_name}/{encoded_title_path}/PTIFF/'
+        title_path = title_path.replace("&#039;", "'")
+        base_url = f'https://wbsl.gov.in/Books/{disk_name}/{title_path}/PTIFF/'
         
         for page_num in range(1, total_pages + 1):
             page_str = str(page_num).zfill(8)

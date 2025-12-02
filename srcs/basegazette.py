@@ -226,7 +226,7 @@ class Downloader:
                         given as unicode string.
         """
         purl = urllib.parse.urlsplit(s)
-        path = urllib.parse.quote(purl.path, '/%')
+        path = urllib.parse.quote(purl.path, "/%'")
         qs = urllib.parse.quote_plus(purl.query, ':&=')
 
         return urllib.parse.urlunsplit((purl.scheme, purl.netloc, path, \
