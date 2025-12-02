@@ -242,7 +242,7 @@ class WBSL(KolkataWBSL):
         calcutta_bookids = self.get_calcutta_bookids(cookiejar, event)
 
         # add a known problematic book to ignore
-        calcutta_bookids.add('8951')
+        # calcutta_bookids.add('8951')
         
         # Parse all gazette entries from eArchive (from cache or server)
         all_entries = self.get_results(cookiejar, curr_url, event)
@@ -252,7 +252,11 @@ class WBSL(KolkataWBSL):
         for entry in all_entries:
             bookid = str(entry.get('bookid'))
             if bookid not in calcutta_bookids:
-                filtered_entries.append(entry)
+                title = entry.get('title', 'N.A.')
+                if "'" not in title:
+                    filtered_entries.append(entry)
+                else:
+                    self.logger.debug('Filtering out bookid %s (title contains single quote) title: %s', bookid, title)
             else:
                 self.logger.debug('Filtering out bookid %s (in Calcutta Gazette)', bookid)
         
