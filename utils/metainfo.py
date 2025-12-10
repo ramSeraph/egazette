@@ -190,6 +190,7 @@ class MetaInfo(dict):
           ('refnum',           'Reference Number'), \
           ('ref_type',         'Reference Type'), \
           ('linknames',        'Gazette Links'), \
+          ('source_url',       'Source URL'), \
           ('url',              'Gazette Source'), \
           ('upload_date',      'Upload Date'), \
           ('issuedate',        'Issue Date'), \
@@ -219,7 +220,7 @@ class MetaInfo(dict):
                  v = '<br/>'.join(v)
                  if v:
                      v = '<br/>' + v
-             elif k == 'url':
+             elif k == 'url' or k == 'source_url':
                  v = f'<a href="{v}">URL</a>'
              else:    
                  v = self.get(k).strip()
