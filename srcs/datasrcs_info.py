@@ -394,8 +394,8 @@ srcinfos = {
         'category'  : 'Nagaland Gazette',
         'start_date': datetime(2017, 1, 1),
         'collection': '',
-        'expected_update_frequency': 60,
-        'expected_delay': 60
+        'expected_update_frequency': 90,
+        'expected_delay': 90
     },
     'lakshadweep' : {
         'languages' : ['eng', 'hin'],
