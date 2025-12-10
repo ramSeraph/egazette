@@ -450,7 +450,7 @@ srcinfos = {
         'start_date': datetime(2025, 7, 1),
         'identifier_fn': truncated_identifier,
         'collection': '',
-        'expected_update_frequency': 15,
+        'expected_update_frequency': 25,
         'expected_delay': 30
     },
     'assam' : {
